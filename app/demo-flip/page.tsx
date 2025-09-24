@@ -38,6 +38,8 @@ export default function DemoFlip() {
                 <div className="p-10 bg-blue-200">Página 2</div>
                 <div className="p-10 bg-green-200">Página 3</div>
                 <div className="p-10 bg-pink-200">Página 4</div>
+                <div className="p-10 bg-green-200">Página 5</div>
+
             </HTMLFlipBook>
         </div>
     );
