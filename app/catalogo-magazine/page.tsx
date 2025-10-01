@@ -16,6 +16,8 @@ import Select from "@/components/home/Select";
 import { Clock, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+
+
 const periodOptions = [
     { label: "Verano", value: "verano" },
     { label: "Agosto - Diciembre", value: "ago-dic" },
@@ -47,6 +49,7 @@ export default function CatalogoMagazinePage() {
     )
 
     const [projects, setProjects] = useState<ProjectTagsSplit[]>([]);
+    const [selectedHours, setSelectedHours] = React.useState(searchParams.get('hours') || '');
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
     const [selectedTags, setSelectedTags] = useState(searchParams.get('tags') || '');
     const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '');
@@ -84,6 +87,7 @@ export default function CatalogoMagazinePage() {
     const handleReset = () => {
         router.push(pathname)
         setSearchTerm('');
+        setSelectedHours('');
         setSelectedTags('');
         setSelectedModel('');
         setSelectedPeriod('');
@@ -110,6 +114,11 @@ export default function CatalogoMagazinePage() {
         setSelectedPeriod(selectedPeriod);
     };
 
+    const handleHoursFilterChange = (selectedHours: string) => {
+        router.push(pathname + '?' + createQueryString('hours', selectedHours))
+        setSelectedHours(selectedHours);
+    };
+
 
 
     // ----------------------------------------------------
@@ -132,12 +141,18 @@ export default function CatalogoMagazinePage() {
         )
         .filter(p => selectedTags ? p.tags.some(tag => selectedTags.includes(tag.name)) : true)
         .filter(p => selectedModel ? selectedModel.includes(p.model) : true)
-        .filter(p => selectedPeriod ? selectedPeriod === p.period : true);
-    
+        .filter(p => selectedPeriod ? selectedPeriod === p.period : true)
+        .filter((p) => {
+            if (selectedHours.length === 0) return true;
+            return selectedHours.includes(p.hours);
+        });
 
 
 
     // Opciones dinámicas para filtros
+    const hoursOptions = Array.from(new Set(projects.map(p => p.hours)))
+        .map(hours => ({ label: `${hours} Horas`, value: hours }));
+
     const tagOptions = Array.from(new Set(projects.flatMap(p => p.tags.map(tag => tag.name))))
         .map(tag => ({ label: tag, value: tag }));
     const modalityOptions = Array.from(new Set(projects.map(p => p.model)))
@@ -152,8 +167,6 @@ export default function CatalogoMagazinePage() {
         return <div className="p-4">Cargando proyectos...</div>;
     }
 
-
-    
     return (
         <main className="flex flex-col items-center py-6">
             <h1 className="text-3xl font-bold mb-6">Catálogo estilo revista - {selectedPeriod ? periodOptions.find(option => option.value === selectedPeriod)?.label + " -" : ''} {new Date().getFullYear()}</h1>
@@ -161,6 +174,12 @@ export default function CatalogoMagazinePage() {
             <div className="flex flex-col md:flex-row mb-6 gap-2 items-center w-full">
                 <SearchBar searchTerm={searchTerm} onSearch={handleSearch} />
                 <div className="flex flex-row gap-2">
+                    <Filter
+                        values={selectedHours}
+                        title="Horas"
+                        options={hoursOptions}
+                        onChange={handleHoursFilterChange}
+                    />
                     <Filter 
                         title="Carrera" 
                         values={selectedTags} 
@@ -179,7 +198,7 @@ export default function CatalogoMagazinePage() {
                         options={periodOptions} 
                         onChange={handlePeriodFilterChange} 
                     />
-                    {(searchTerm || selectedTags || selectedModel || selectedPeriod) && ( 
+                    {(searchTerm || selectedHours || selectedTags || selectedModel || selectedPeriod) && ( 
                         <Button isIconOnly size="sm" color="secondary" startContent={<X className="w-4 h-4" />} onClick={handleReset} /> 
                     )}
                 </div>
@@ -187,7 +206,7 @@ export default function CatalogoMagazinePage() {
 
             {/* Revista */}
             <HTMLFlipBook
-                key={`${searchTerm}-${selectedTags}-${selectedModel}-${selectedPeriod}`} // Fuerza recreación    
+                key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`} // Fuerza recreación    
                 width={400}
                 height={600}             
                 maxShadowOpacity={0.5} // Example value, adjust as needed

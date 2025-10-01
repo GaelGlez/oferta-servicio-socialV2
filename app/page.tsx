@@ -3,32 +3,73 @@
 import { Button } from "@nextui-org/react";
 import { LeafyGreen, Sun } from "lucide-react";
 import { Suspense } from "react";
+import { useRouter } from "next/navigation";
 
+const periodOptions = [
+  {
+    label: "PERIODO INTENSIVO",
+    label2: "Verano",
+    value: "verano",
+    hours: [60, 100, 200],
+    colorFrom: "lime-200",
+    colorTo: "lime-500",
+    icon: <Sun className="size-32" />,
+  },
+  {
+    label: "PERIODO SEMESTRAL",
+    label2: "Agosto - Diciembre",
+    value: "ago-dic",
+    hours: [60, 120, 180],
+    colorFrom: "orange-200",
+    colorTo: "orange-500",
+    icon: <LeafyGreen className="size-32" />,
+  },
+];
+
+/* 
+Opciones de value
+"verano"
+"ago-dic"
+"invierno"
+"feb-jun"
+*/
 
 function PageContent() {
-  return (
+  const router = useRouter();
+
+    return (
     <main className="flex min-h-screen flex-col px-4 lg:px-20 py-10 items-center">
       <h1 className="text-5xl font-bold py-5">Ofertas Servicio Social</h1>
       <div className="flex flex-col md:flex-row md:space-x-10">
-        <a className="m-10 p-4 size-80 lg:size-96 rounded border-black border-2 bg-gradient-to-br from-lime-200 to-lime-500" href="/catalogo/?period=verano">
-          <div className="flex flex-col items-center h-full justify-between">
-            <h2 className="text-2xl font-mono font-bold">VERANO</h2>
-            <Sun className="size-32" />
-            <Button className="text-small" color="primary" radius="full" size="sm">Ver oferta</Button>
-          </div>
-        </a>
-        <a className="m-10 p-4 size-80 lg:size-96 rounded border-black border-2 bg-gradient-to-br from-orange-200 to-orange-500" href="/catalogo/?period=ago-dic">
-          <div className="flex flex-col items-center h-full justify-between">
-            <div className="relative text-center font-mono">
-              <span className="text-tiny absolute bottom-12 left-28">OTOÑO</span>
-              <h2 className="text-2xl font-bold">AGOSTO</h2>
-              <div className="border-t border-1.5 border-black w-full" />
-              <h2 className="text-2xl font-bold">DICIEMBRE</h2>
+        {periodOptions.map((period) => (
+          <div
+            key={period.value}
+            className={`m-10 p-4 size-80 lg:size-96 rounded border-black border-2 bg-gradient-to-br from-${period.colorFrom} to-${period.colorTo}`}
+          >
+            <div className="flex flex-col items-center h-full justify-between">
+              <div className="flex flex-col items-center gap-0.3">
+                <h2 className="text-2xl font-mono font-bold text-center">{period.label}</h2>
+                <h2 className="text-xl font-mono font-semibold">{period.label2}</h2>
+              </div>
+              {period.icon}
+              <div className="flex flex-row gap-2 mt-4">
+                {period.hours.map((h) => (
+                  <Button
+                    key={h}
+                    color="primary"
+                    radius="full"
+                    size="sm"
+                    onClick={() =>
+                      router.push(`/catalogo-magazine?hours=Hasta+${h}&period=${period.value}`)
+                    }
+                  >
+                    {h} hrs
+                  </Button>
+                ))}
+              </div>
             </div>
-            <LeafyGreen className="size-32" />
-            <Button className="text-small" color="primary" radius="md" size="sm">Ver oferta</Button>
           </div>
-        </a>
+        ))}
       </div>
     </main>
   );
