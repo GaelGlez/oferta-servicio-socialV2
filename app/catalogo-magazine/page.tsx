@@ -13,19 +13,14 @@ import FavoriteButton from '../proyecto/[proyecto]/favorite-button';
 
 import { Filter, SearchBar } from "@/components/home";
 import Select from "@/components/home/Select";
-import { X } from "lucide-react";
+import { Clock, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-
-
-
-
 
 const periodOptions = [
     { label: "Verano", value: "verano" },
     { label: "Agosto - Diciembre", value: "ago-dic" },
-    { label: "Invierno", value: "invierno" },
-    { label: "Febrero - Junio", value: "feb-jun" },
+    //{ label: "Invierno", value: "invierno" },
+    //{ label: "Febrero - Junio", value: "feb-jun" },
 ];
 
 const HTMLFlipBook: any = HTMLFlipBookLib; // evita errores de tipos en prototipo
@@ -37,6 +32,9 @@ export default function CatalogoMagazinePage() {
     const pathname = usePathname()
     const searchParams = useSearchParams()!
     const { projects: contextProjects } = useProjectsContext();
+
+
+
 
     const createQueryString = useCallback(
         (name: string, value: string) => {
@@ -55,6 +53,9 @@ export default function CatalogoMagazinePage() {
     const [selectedPeriod, setSelectedPeriod] = useState(searchParams.get('period') || '');
     const [favoritesIDs, setFavoritesIDs] = useState<number[]>([]);
     const [error, setError] = useState<string | null>(null);
+
+
+
 
     // Traer proyectos (usa contexto si ya están)
     const fetchProjects = useCallback(async () => {
@@ -75,6 +76,11 @@ export default function CatalogoMagazinePage() {
         }
     }, [contextProjects, supabase]);
 
+
+
+
+    // ----------------------------------------------------
+    // Handlers de búsqueda y filtros
     const handleReset = () => {
         router.push(pathname)
         setSearchTerm('');
@@ -104,15 +110,19 @@ export default function CatalogoMagazinePage() {
         setSelectedPeriod(selectedPeriod);
     };
 
-    /*useEffect(() => {
-        fetchProjects();
-    }, [fetchProjects]);*/
+
+
+    // ----------------------------------------------------
+    // Efecto para cargar proyectos y favoritos al montar
     useEffect(() => {
-        fetchProjects();
         const favorites = JSON.parse(localStorage.getItem("favorites") || "{}");
         setFavoritesIDs(Object.keys(favorites).map(Number));
-    }, [fetchProjects]);
+        console.log('period', selectedPeriod);
+        fetchProjects();
+    }, [fetchProjects, selectedPeriod]);
     
+
+
     // --------------------------------------------------
     // Filtrado de proyectos
     const filteredProjects = projects
@@ -124,6 +134,9 @@ export default function CatalogoMagazinePage() {
         .filter(p => selectedModel ? selectedModel.includes(p.model) : true)
         .filter(p => selectedPeriod ? selectedPeriod === p.period : true);
     
+
+
+
     // Opciones dinámicas para filtros
     const tagOptions = Array.from(new Set(projects.flatMap(p => p.tags.map(tag => tag.name))))
         .map(tag => ({ label: tag, value: tag }));
@@ -140,25 +153,41 @@ export default function CatalogoMagazinePage() {
     }
 
 
+    
     return (
         <main className="flex flex-col items-center py-6">
-            <h1 className="text-3xl font-bold mb-6">Catálogo estilo revista</h1>
+            <h1 className="text-3xl font-bold mb-6">Catálogo estilo revista - {selectedPeriod ? periodOptions.find(option => option.value === selectedPeriod)?.label + " -" : ''} {new Date().getFullYear()}</h1>
             {/* Barra de búsqueda y filtros */}
             <div className="flex flex-col md:flex-row mb-6 gap-2 items-center w-full">
                 <SearchBar searchTerm={searchTerm} onSearch={handleSearch} />
                 <div className="flex flex-row gap-2">
-                    <Filter title="Carrera" values={selectedTags} options={tagOptions} onChange={handleTagsFilterChange} />
-                    <Filter title="Modalidad" values={selectedModel} options={modalityOptions} onChange={handleModelFilterChange} />
-                    <Select title="Periodo" value={selectedPeriod} options={periodOptions} onChange={handlePeriodFilterChange} />
-
-                    {(searchTerm || selectedTags || selectedModel || selectedPeriod) && (
-                    <Button isIconOnly size="sm" color="secondary" startContent={<X className="w-4 h-4" />} onClick={handleReset} />
+                    <Filter 
+                        title="Carrera" 
+                        values={selectedTags} 
+                        options={tagOptions} 
+                        onChange={handleTagsFilterChange} 
+                    />
+                    <Filter 
+                        title="Modalidad" 
+                        values={selectedModel} 
+                        options={modalityOptions} 
+                        onChange={handleModelFilterChange} 
+                    />
+                    <Select 
+                        title="Periodo" 
+                        value={selectedPeriod} 
+                        options={periodOptions} 
+                        onChange={handlePeriodFilterChange} 
+                    />
+                    {(searchTerm || selectedTags || selectedModel || selectedPeriod) && ( 
+                        <Button isIconOnly size="sm" color="secondary" startContent={<X className="w-4 h-4" />} onClick={handleReset} /> 
                     )}
                 </div>
             </div>
 
             {/* Revista */}
             <HTMLFlipBook
+                key={`${searchTerm}-${selectedTags}-${selectedModel}-${selectedPeriod}`} // Fuerza recreación    
                 width={400}
                 height={600}             
                 maxShadowOpacity={0.5} // Example value, adjust as needed
@@ -193,7 +222,7 @@ export default function CatalogoMagazinePage() {
                         <FavoriteButton id={project.id.toString()} />
                         <h1 className="text-3xl font-bold">{project?.title}</h1>
                         <p className="text-sm">{project?.organization}<span className='ml-4 text-lg font-medium text-red-700'>{periodOptions.find(option => option.value === project?.period)?.label}</span></p>
-                         {/* Tags */}
+                        {/* Tags */}
                         <div className="flex flex-wrap gap-1 mt-2">
                             {project.tags?.map((tag, i) => (
                                 <Chip key={i} size="sm" className={`${tag.color} text-white`}>
@@ -201,9 +230,12 @@ export default function CatalogoMagazinePage() {
                                 </Chip>
                             ))}
                         </div>
+                        {/* Objetivo del Proyecto */}
                         <p className="w-[90%] text-medium font-medium py-2"><span className='font-bold'>Objetivo del Proyecto: </span>{project?.objective}</p>
-
-                        <p className="text-sm mt-2">{project.description}</p>
+                        {/* Descripción */}
+                        <p className="text-medium font-bold pb-0.5">Actividades a realizar</p>
+                        <p className="text-medium whitespace-pre-line">{project?.description}</p>
+                        {/* Imagen del Proyecto */}
                         <div className="flex flex-col gap-1 w-full lg:w-1/3 justify-center items-center">
                             {project?.image && (
                                 <Image
@@ -217,8 +249,12 @@ export default function CatalogoMagazinePage() {
                                 height={500}
                                 />
                             )}
-                            </div>
-
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-zinc-500" strokeWidth={1.5} />
+                            <p className="text-medium font-bold pb-0.5">Horas máximas a acréditar</p>
+                            <p className="text-tiny text-zinc-500 w-[90%]"><span className="font-bold">{project?.hours} horas</span></p>
+                        </div>
                     </div>
                 ))}
             </HTMLFlipBook>
