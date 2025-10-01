@@ -31,7 +31,7 @@
     "geist": "^1.1.0",
     "lucide-react": "^0.292.0",
     "next": "14.2.4",
-    "react": "^18",
+    "react": "^18.3.1",
     "react-dom": "^18",
     "react-pageflip": "^2.0.3",
     "tailwind-merge": "^2.0.0",
@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "^18",
+    "@types/react": "^18.3.25",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
