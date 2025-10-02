@@ -17,7 +17,7 @@ import { Clock, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 
-
+// Rama saul
 const periodOptions = [
     { label: "Verano", value: "verano" },
     { label: "Agosto - Diciembre", value: "ago-dic" },
