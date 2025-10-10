@@ -25,31 +25,17 @@ const HTMLFlipBook: any = HTMLFlipBookLib;
 
 /* ----------- PORTADA ----------- */
 function CoverPage({
-  title,
-  subtitle,
-  periodLabel,
-  year,
-  totalProjects,
-  careersCount,
-  onlineCount,
-  presencialCount,
+  title, subtitle, periodLabel, year,
+  totalProjects, careersCount, onlineCount, presencialCount,
 }: {
-  title: string;
-  subtitle?: string;
-  periodLabel?: string;
-  year: number;
-  totalProjects: number;
-  careersCount: number;
-  onlineCount: number;
-  presencialCount: number;
+  title: string; subtitle?: string; periodLabel?: string; year: number;
+  totalProjects: number; careersCount: number; onlineCount: number; presencialCount: number;
 }) {
   return (
     <article className="cover-sheet">
       <div className="cover-bg" />
       <header className="cover-top">
-        <div className="brand">
-          <span className="brand-dot" /> Servicio Social
-        </div>
+        <div className="brand"><span className="brand-dot" /> Servicio Social</div>
         {periodLabel && <span className="cover-period">{periodLabel}</span>}
       </header>
       <main className="cover-hero">
@@ -80,14 +66,11 @@ export default function CatalogoMagazinePage() {
   const searchParams = useSearchParams()!;
   const { projects: contextProjects } = useProjectsContext();
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams);
-      params.set(name, value);
-      return params.toString();
-    },
-    [searchParams]
-  );
+  const createQueryString = useCallback((name: string, value: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set(name, value);
+    return params.toString();
+  }, [searchParams]);
 
   const [projects, setProjects] = useState<ProjectTagsSplit[]>([]);
   const [selectedHours, setSelectedHours] = useState(searchParams.get('hours') || '');
@@ -95,7 +78,7 @@ export default function CatalogoMagazinePage() {
   const [selectedTags, setSelectedTags] = useState(searchParams.get('tags') || '');
   const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '');
   const [selectedPeriod, setSelectedPeriod] = useState(searchParams.get('period') || '');
-  const [favoritesIDs, setFavoritesIDs] = useState<number[]>([]);
+  const [favoritesIDs, setFavoritesIDs] = useState<number[]>([]); // opcional: eliminar si no lo usas
   const [error, setError] = useState<string | null>(null);
 
   const fetchProjects = useCallback(async () => {
@@ -110,11 +93,7 @@ export default function CatalogoMagazinePage() {
 
   const handleReset = () => {
     router.push(pathname);
-    setSearchTerm('');
-    setSelectedHours('');
-    setSelectedTags('');
-    setSelectedModel('');
-    setSelectedPeriod('');
+    setSearchTerm(''); setSelectedHours(''); setSelectedTags(''); setSelectedModel(''); setSelectedPeriod('');
   };
   const handleSearch = (term: string) => { router.push(pathname + '?' + createQueryString('search', term)); setSearchTerm(term.toLowerCase()); };
   const handleTagsFilterChange = (val: string) => { router.push(pathname + '?' + createQueryString('tags', val)); setSelectedTags(val); };
@@ -128,30 +107,51 @@ export default function CatalogoMagazinePage() {
     fetchProjects();
   }, [fetchProjects, selectedPeriod]);
 
-  const filteredProjects = projects
-    .filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()) || p.organization.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter(p => selectedTags ? p.tags.some(tag => selectedTags.includes(tag.name)) : true)
-    .filter(p => selectedModel ? selectedModel.includes(p.model) : true)
-    .filter(p => selectedPeriod ? selectedPeriod === p.period : true)
-    .filter(p => (selectedHours.length === 0 ? true : selectedHours.includes(p.hours)));
+  // helpers
+  const includesCsv = (csv: string, value: string | number) => {
+    const list = String(csv || '').split(',').map(s => s.trim()).filter(Boolean);
+    return list.length === 0 ? true : list.includes(String(value));
+  };
 
-  const hoursOptions = useMemo(() => Array.from(new Set(projects.map(p => p.hours))).map(hours => ({ label: `${hours} Horas`, value: hours })), [projects]);
-  const tagOptions = useMemo(() => Array.from(new Set(projects.flatMap(p => p.tags.map(tag => tag.name)))).map(tag => ({ label: tag, value: tag })), [projects]);
-  const modalityOptions = useMemo(() => Array.from(new Set(projects.map(p => p.model))).map(mod => ({ label: mod, value: mod })), [projects]);
+  const filteredProjects = projects
+    .filter(p => (p.title||'').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                 (p.organization||'').toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(p => selectedTags ? p.tags.some(tag => includesCsv(selectedTags, tag.name)) : true)
+    .filter(p => selectedModel ? includesCsv(selectedModel, p.model) : true)
+    .filter(p => selectedPeriod ? selectedPeriod === p.period : true)
+    .filter(p => selectedHours ? includesCsv(selectedHours, p.hours ?? '') : true);
+
+  const hoursOptions = useMemo(() =>
+    Array.from(new Set(projects.map(p => p.hours).filter(Boolean)))
+      .map(hours => ({ label: `${hours} Horas`, value: hours }))
+  , [projects]);
+
+  const tagOptions = useMemo(() =>
+    Array.from(new Set(projects.flatMap(p => p.tags.map(tag => tag.name))))
+      .map(tag => ({ label: tag, value: tag }))
+  , [projects]);
+
+  const modalityOptions = useMemo(() =>
+    Array.from(new Set(projects.map(p => p.model).filter(Boolean)))
+      .map(mod => ({ label: mod, value: mod }))
+  , [projects]);
 
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (projects.length === 0) return <div className="p-4">Cargando proyectos...</div>;
 
   const getPeriodLabel = (val?: string) => periodOptions.find(o => o.value === val)?.label || '';
-  const isOnline = (model?: string) => (model || '').toLowerCase().includes('línea') || (model || '').toLowerCase().includes('linea') || (model || '').toLowerCase().includes('online');
-  const orgBadgeText = (org?: string) => { const txt = (org || '').trim(); if (!txt) return 'PROYECTO'; if (txt.length <= 18) return txt.toUpperCase(); const mid = Math.ceil(txt.length / 2); return (txt.slice(0, mid).trim() + '\n' + txt.slice(mid).trim()).toUpperCase(); };
-
-  // --- NUEVO: normalizador de "Horas" para evitar "Hasta Hasta 60"
+  const isOnline = (model?: string) => (model||'').toLowerCase().includes('línea') || (model||'').toLowerCase().includes('linea') || (model||'').toLowerCase().includes('online');
+  const orgBadgeText = (org?: string) => {
+    const txt = (org || '').trim();
+    if (!txt) return 'PROYECTO';
+    if (txt.length <= 18) return txt.toUpperCase();
+    const mid = Math.ceil(txt.length / 2);
+    return (txt.slice(0, mid).trim() + '\n' + txt.slice(mid).trim()).toUpperCase();
+  };
   const normalizeHours = (h?: string | number) => {
     if (h == null) return '—';
-    const raw = String(h).trim();
-    const m = raw.match(/\d+/);
-    return m ? m[0] : raw;
+    const m = String(h).trim().match(/\d+/);
+    return m ? m[0] : String(h);
   };
 
   const year = new Date().getFullYear();
@@ -166,7 +166,7 @@ export default function CatalogoMagazinePage() {
       {/* Controles */}
       <div className="flex flex-col md:flex-row mb-4 gap-2 items-center w-full max-w-7xl">
         <SearchBar searchTerm={searchTerm} onSearch={handleSearch} />
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2">{/* <-- corregido: gap-2 */}
           <Filter title="Horas" values={selectedHours} options={hoursOptions} onChange={handleHoursFilterChange} />
           <Filter title="Carrera" values={selectedTags} options={tagOptions} onChange={handleTagsFilterChange} />
           <Filter title="Modalidad" values={selectedModel} options={modalityOptions} onChange={handleModelFilterChange} />
@@ -181,27 +181,11 @@ export default function CatalogoMagazinePage() {
       <div className="book-wrap">
         <HTMLFlipBook
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
-          size="stretch"
-          autoSize
-          width={1100}
-          height={1558}
-          minWidth={520}
-          maxWidth={1400}
-          minHeight={736}
-          maxHeight={1983}
-          showCover
-          usePortrait
-          maxShadowOpacity={0.5}
-          drawShadow
-          startPage={0}
-          flippingTime={800}
-          clickEventForward={false}
-          mobileScrollSupport={false}
-          className="shadow-xl"
-          useMouseEvents
-          swipeDistance={50}
-          showPageCorners
-          disableFlipByClick={false}
+          size="stretch" autoSize
+          width={1100} height={1558} minWidth={520} maxWidth={1400} minHeight={736} maxHeight={1983}
+          showCover usePortrait maxShadowOpacity={0.5} drawShadow startPage={0}
+          flippingTime={800} clickEventForward={false} mobileScrollSupport={false}
+          className="shadow-xl" useMouseEvents swipeDistance={50} showPageCorners disableFlipByClick={false}
         >
           {/* PORTADA */}
           {(() => {
@@ -213,14 +197,10 @@ export default function CatalogoMagazinePage() {
             return (
               <div key="cover" className="page hard cover-page" data-density="hard">
                 <CoverPage
-                  title="Catálogo de Proyectos"
-                  subtitle="Revista de Servicio Social"
-                  periodLabel={periodLabelTop}
-                  year={year}
-                  totalProjects={totalProjects}
-                  careersCount={careersCount}
-                  onlineCount={onlineCount}
-                  presencialCount={presencialCount}
+                  title="Catálogo de Proyectos" subtitle="Revista de Servicio Social"
+                  periodLabel={periodLabelTop} year={year}
+                  totalProjects={totalProjects} careersCount={careersCount}
+                  onlineCount={onlineCount} presencialCount={presencialCount}
                 />
               </div>
             );
@@ -232,8 +212,13 @@ export default function CatalogoMagazinePage() {
             const hoursText = project?.hours ? `${project.hours} horas` : '—';
             const badge = orgBadgeText(project?.organization);
 
-            const activities = (project?.description || '')
-              .split('\n').map(s => s.trim()).filter(Boolean);
+            const activities = (project?.description || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+            const groupKey = (project as any)?.groupKey ?? (project as any)?.group_key ?? '';
+            const abilitiesText = (() => {
+              const raw = (project as any)?.abilities ?? (project as any)?.skills ?? '';
+              return Array.isArray(raw) ? raw.filter(Boolean).join(', ') : String(raw || '').trim();
+            })();
 
             return (
               <div key={project.id} className="page">
@@ -249,14 +234,14 @@ export default function CatalogoMagazinePage() {
                     <div className="byline" title={project?.organization || 'Organización'}>
                       <span className="org-name">{project?.organization || 'Organización'}</span>
                       {periodLabel && <span className="sep">·</span>}
-                      {periodLabel && <span className="period"><b>{periodLabel}</b></span>}
                     </div>
 
+                    {/* SOLO tags en el header */}
                     <div className="chips bottom" role="list">
-                      {project?.group && (<span className="chip" role="listitem"><i className="c3" />{project.group}</span>)}
-                      {project?.groupKey && (<span className="chip" role="listitem"><i className="c3" />{project.groupKey}</span>)}
                       {project?.tags?.slice(0, 3).map((t, i) => (
-                        <span className="chip" key={i} role="listitem"><i className="c3" />{t.name}</span>
+                        <span className="chip" key={`tag-${project.id}-${i}`} role="listitem" title={t.name}>
+                          <i className="c1" />{t.name}
+                        </span>
                       ))}
                     </div>
                   </header>
@@ -278,34 +263,31 @@ export default function CatalogoMagazinePage() {
                         )}
                       </div>
 
-                      {project?.image && (
-                        <figure className="card org-media" style={{ marginTop: 10 }}>
-                          <Image
-                            as={NextImage}
-                            isBlurred
-                            removeWrapper
-                            alt={project?.title || 'Imagen del proyecto'}
-                            className="z-0 object-contain org-img"
-                            src={supabase.storage.from('ServicioSocialProjectImages').getPublicUrl(project?.image).data.publicUrl}
-                            width={1000}
-                            height={650}
-                          />
-                        </figure>
-                      )}
-
-                      {project?.location && (
+                      {project?.population && (
                         <div className="card">
                           <div className="meta">
-                            <span className="dot" style={{ background: 'var(--color-4)', boxShadow:'0 0 0 3px rgba(254,52,102,.16)' }} />
+                            <span className="dot" style={{ background: 'var(--color-4)' }} />
                             <div>
-                              <h3>Ubicación</h3>
-                              <p className="lead clamp-4" style={{margin:0}}>{project?.location}</p>
+                              <h3>Población que atiende</h3>
+                              <p className="lead clamp-2" style={{margin:0}}>{project?.population}</p>
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {project?.quota !== undefined && project?.quota !== null && (
+                      {abilitiesText && (
+                        <div className="card">
+                          <div className="meta">
+                            <span className="dot" style={{ background: 'var(--color-4)', boxShadow:'0 0 0 3px rgba(254,52,102,.16)' }} />
+                            <div>
+                              <h3>Competencias requeridas</h3>
+                              <p className="lead clamp-3" style={{margin:0}}>{abilitiesText}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {project?.quota !== undefined && project?.quota !== null && String(project.quota).trim() !== '' && (
                         <div className="card">
                           <div className="meta">
                             <span className="dot" style={{ background: 'var(--color-5)', boxShadow:'0 0 0 3px rgba(254,205,51,.18)' }} />
@@ -318,8 +300,47 @@ export default function CatalogoMagazinePage() {
                       )}
                     </div>
 
-                    {/* Columna derecha más ligera */}
+                    {/* Columna derecha (IMAGEN ARRIBA) */}
                     <aside className="aside-col">
+                      {project?.image && (
+                        <figure className="org-media org-media--aside">{/* sin 'card' */}
+                          <Image
+                            as={NextImage}
+                            isBlurred
+                            removeWrapper
+                            alt={project?.title || 'Imagen del proyecto'}
+                            className="z-0 object-contain org-img"
+                            src={supabase.storage.from('ServicioSocialProjectImages').getPublicUrl(project?.image).data.publicUrl}
+                            width={800}
+                            height={480}
+                          />
+                        </figure>
+                      )}
+
+                      {project?.location && (
+                        <div className="card">
+                          <div className="meta">
+                            <span className="dot" style={{ background: 'var(--color-4)', boxShadow:'0 0 0 3px rgba(254,52,102,.16)' }} />
+                            <div>
+                              <h3>Ubicación</h3>
+                              <p className="lead clamp-2" style={{margin:0}}>{project?.location}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {project?.schedule && (
+                        <div className="card">
+                          <div className="meta">
+                            <span className="dot" aria-hidden="true"></span>
+                            <div>
+                              <h3>Horario</h3>
+                              <p className="lead clamp-2" style={{margin:0}}>{project?.schedule}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="card">
                         <div className="meta">
                           <span className="dot" style={{ background: 'var(--color-5)' }} />
@@ -342,49 +363,24 @@ export default function CatalogoMagazinePage() {
                         </div>
                       </div>
 
-                      {project?.schedule && (
-                        <div className="card">
-                          <div className="meta">
-                            <span className="dot" aria-hidden="true"></span>
-                            <div>
-                              <h3>Horario</h3>
-                              <p className="lead clamp-2" style={{margin:0}}>{project?.schedule}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {project?.population && (
-                        <div className="card">
-                          <div className="meta">
-                            <span className="dot" style={{ background: 'var(--color-4)' }} />
-                            <div>
-                              <h3>Población que atiende</h3>
-                              <p className="lead clamp-2" style={{margin:0}}>{project.population}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {project?.abilities && (
-                        <div className="card">
-                          <div className="meta">
-                            <span className="dot" style={{ background: 'var(--color-4)', boxShadow:'0 0 0 3px rgba(254,52,102,.16)' }} />
-                            <div>
-                              <h3>Competencias requeridas</h3>
-                              <p className="lead clamp-4" style={{margin:0}}>{project?.abilities}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {project?.organization && (
-                        <div className="badge" title={project?.organization}>
-                          {badge.split('\n').map((line, idx) => <span key={idx}>{line}<br/></span>)}
-                        </div>
-                      )}
                     </aside>
                   </section>
+
+                  {/* FOOTER fijo con group y groupKey */}
+                  <footer className="page-footer">
+                    <div className="footer-row" role="list">
+                      <span className="footer-label">Grupo:</span>
+                      <span className="footer-value">
+                        {(project?.group ?? '').toString().trim() || '—'}
+                      </span>
+
+                      <span className="footer-label">Clave:</span>
+                      <span className="footer-value">
+                        {(groupKey ?? '').toString().trim() || '—'}
+                      </span>
+                    </div>
+                  </footer>
+
                 </article>
               </div>
             );
@@ -397,30 +393,17 @@ export default function CatalogoMagazinePage() {
           --color-1:#B976A9; --color-2:#B9008A; --color-3:#CDFE33; --color-4:#FE3466; --color-5:#FECD33;
           --ink:#0f1220; --muted:#6b7180; --paper:#fff9f7; --line:#e8e3df;
           --shadow: 0 30px 80px rgba(16,20,40,.12), 0 10px 30px rgba(16,20,40,.10);
-          /* compactado */
           --p: clamp(10px, 1.4vw, 16px); --gap: clamp(10px, 1.6vw, 18px); --radius: 16px;
         }
 
-        .book-wrap{
-          width: min(96vw, 1400px);
-          aspect-ratio: 480 / 680;
-          height: calc(min(96vw, 1400px) * 680 / 480);
-          margin-inline: auto;
-        }
+        .book-wrap{ width: min(96vw, 1400px); aspect-ratio: 480 / 680;
+          height: calc(min(96vw, 1400px) * 680 / 480); margin-inline: auto; }
 
-        .page{ width:100%; height:100%; }
-        .cover-page{ width:100%; height:100%; }
+        .page, .cover-page{ width:100%; height:100%; }
         .page > .sheet{ height:100%; display:flex; flex-direction:column; }
 
-        .sheet{
-          width:100%;
-          background:var(--paper);
-          box-shadow:var(--shadow);
-          border-radius:var(--radius);
-          overflow:hidden;
-          position:relative;
-          display:flex; flex-direction:column;
-        }
+        .sheet{ width:100%; background:var(--paper); box-shadow:var(--shadow);
+          border-radius:var(--radius); overflow:hidden; position:relative; display:flex; flex-direction:column; }
 
         .masthead{
           position:relative;
@@ -432,7 +415,8 @@ export default function CatalogoMagazinePage() {
         .chips{ display:flex; gap:8px; flex-wrap:wrap }
         .chips.top{ margin-bottom:8px } .chips.bottom{ margin-top:8px; row-gap:6px }
         .tag{ display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); padding:6px 12px; border-radius:999px; font-size:.82rem; }
-        .chip{ display:inline-flex; gap:8px; align-items:center; border-radius:999px; border:1px solid rgba(255,255,255,.35); padding:6px 10px; font-size:.85rem; background:rgba(255,255,255,.12); backdrop-filter: blur(2px); }
+        .chip{ display:inline-flex; gap:8px; align-items:center; border-radius:999px; border:1px solid rgba(255,255,255,.35);
+          padding:6px 10px; font-size:.85rem; background:rgba(255,255,255,.12); backdrop-filter: blur(2px); }
         .chip i{ width:8px; height:8px; border-radius:50%; background:#fff }
         .chip .c1{ background:var(--color-3) } .chip .c2{ background:var(--color-4) } .chip .c3{ background:var(--color-5) }
 
@@ -443,10 +427,8 @@ export default function CatalogoMagazinePage() {
 
         .content.no-scroll{
           display:grid; grid-template-columns: 1.25fr .85fr;
-          gap:var(--gap);
-          padding: calc(var(--p) + 4px) var(--p) calc(var(--p) + 8px);
-          flex:1 1 auto; align-items:start;
-          overflow:hidden;
+          gap:var(--gap); padding: calc(var(--p) + 4px) var(--p) calc(var(--p) + 8px);
+          flex:1 1 auto; align-items:start; overflow:hidden;
         }
         @media (max-width: 1024px){ .content.no-scroll{grid-template-columns: 1.2fr .95fr} }
         @media (max-width: 860px){
@@ -466,47 +448,52 @@ export default function CatalogoMagazinePage() {
         .list{margin: 8px 0 0; padding-left:18px}
         .list li{margin:6px 0}
 
-        .org-media{overflow:hidden; border-radius:12px; padding:0; background:#fff}
+        .org-media{overflow:hidden; border-radius:12px; padding:0; background:transparent}
         .org-media .org-img{ width:100%; height:auto; display:block; object-fit:contain; max-height: 140px; }
-
-        /* CLAMPS */
-        .clamp-1{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
-        .clamp-2{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-        .clamp-3{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-        .clamp-4{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; } /* objetivo reducido a 3 líneas */
-        .list-clamped{ max-height: 7.2rem; overflow:hidden; }
-        .list-clamped li:nth-child(n+7){ display:none; } /* muestra 6 bullets máx. */
+        .org-media--aside .org-img{ max-height: 120px; }
+        .aside-col .org-media { margin-bottom: 8px; } /* aire bajo la imagen */
 
         /* ASIDE compacto y sello al fondo */
         .aside-col{ display:flex; flex-direction:column; gap:10px; min-height:0; }
         .aside-col .badge{
-          margin-top:auto;
-          max-height:72px;
-          overflow:hidden;
-          line-height:1.05;
-          padding:10px 12px;
-          border:1px dashed var(--line);
-          border-radius:12px;
-          font-weight:800;
-          font-size:clamp(12px,1.2vw,14px);
-          background:#fff;
+          margin-top:auto; max-height:72px; overflow:hidden; line-height:1.05;
+          padding:10px 12px; border:1px dashed var(--line); border-radius:12px;
+          font-weight:800; font-size:clamp(12px,1.2vw,14px); background:#fff;
         }
         .aside-col .badge span{ display:inline }
 
-        /* --------- PORTADA --------- */
-        .cover-sheet{
-          position: relative; height: 100%;
-          display: grid; grid-template-rows: auto 1fr auto;
-          padding: 20px; overflow: hidden; color: #0f1220; isolation: isolate; border-radius: 16px;
+        /* Footer centrado */
+        .page-footer{
+          margin-top:auto;
+          padding: 14px var(--p);
+          border-top: 1px solid var(--line);
+          background:#fff;
         }
-        .cover-bg{
-          position:absolute; inset:0; z-index:-1;
+        .footer-row{
+          display:flex;
+          flex-wrap:wrap;
+          gap: 14px;
+          justify-content:center;
+          align-items:center;
+        }
+        .footer-label,
+        .footer-value{
+          font-size: clamp(16px, 1.8vw, 20px);
+          line-height: 1.2;
+          font-weight: 900;
+          color: var(--ink);
+        }
+
+        /* --------- PORTADA --------- */
+        .cover-sheet{ position: relative; height: 100%;
+          display: grid; grid-template-rows: auto 1fr auto; padding: 20px; overflow: hidden;
+          color: #0f1220; isolation: isolate; border-radius: 16px; }
+        .cover-bg{ position:absolute; inset:0; z-index:-1;
           background:
             radial-gradient(1200px 600px at -10% 10%, rgba(205,254,51,.18) 0%, rgba(205,254,51,0) 60%),
             radial-gradient(800px 800px at 110% 10%, rgba(254,52,102,.20) 0%, rgba(254,52,102,0) 60%),
             linear-gradient(135deg, #B9008A 0%, #B976A9 45%, #FECD33 120%);
-          filter: saturate(1.05) contrast(1.02);
-        }
+          filter: saturate(1.05) contrast(1.02); }
         .cover-top{ display:flex; align-items:center; justify-content:space-between; }
         .brand{ display:flex; align-items:center; gap:8px; font-weight:800; color:#fff; letter-spacing:.02em; text-transform:uppercase; font-size:.9rem; }
         .brand-dot{ width:10px; height:10px; border-radius:50%; background:#CDFE33; box-shadow:0 0 0 4px rgba(205,254,51,.25) }
@@ -519,10 +506,52 @@ export default function CatalogoMagazinePage() {
         .metric .num{ display:block; font-size: clamp(18px, 5vw, 28px); font-weight: 900; line-height: 1; }
         .metric .lbl{ display:block; font-size: .8rem; opacity:.95; margin-top:2px; }
 
+        /* =======================
+           IMPRESIÓN: evitar cortes
+           ======================= */
+        @media print {
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .sheet{ box-shadow: none !important; }
+          .page-footer{ border-top: 1px solid #ccc; background: #fff; }
+
+          /* Quitar clamps/ellipsis y permitir que el texto envuelva */
+          .clamp-1, .clamp-2, .clamp-3, .clamp-4 {
+            display: block !important;
+            -webkit-line-clamp: unset !important;
+            -webkit-box-orient: unset !important;
+            overflow: visible !important;
+          }
+          .title {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .byline, .org-name {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .masthead {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            padding-bottom: 12px;
+          }
+          .sheet, .content.no-scroll { overflow: visible !important; }
+        }
+
         @media (max-width: 860px){
-          .book-wrap{ width: 96vw; height: calc(96vw * 680 / 480); }
           .content.no-scroll{grid-template-columns:1fr; padding: var(--p)}
-          .org-media .org-img{ max-height: 160px; }
+          .org-media--aside .org-img{ max-height: 140px; }
+          .page-footer{ padding: 12px var(--p); }
+          .footer-row{ gap: 10px; }
         }
       `}</style>
     </main>
