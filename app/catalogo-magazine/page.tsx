@@ -40,7 +40,20 @@ function CoverPage({
       </header>
       <main className="cover-hero">
         <h1 className="cover-title">{title}</h1>
-        {subtitle ? <p className="cover-subtitle">{subtitle}</p> : null}
+        <div
+          className="cover-subtitle with-logo"
+          aria-label={subtitle || 'Revista de Servicio Social'}
+          title={subtitle || 'Revista de Servicio Social'}
+        >
+          <img
+            className="cover-logo"
+            src="https://jkbdulihyfxlypniuvhh.supabase.co/storage/v1/object/public/ServicioSocialProjectImages/servicio-logo.webp"
+            alt="Servicio Social"
+            width={96}
+            height={96}
+            loading="lazy"
+          />
+        </div>
         <div className="cover-metrics">
           <div className="metric"><span className="num">{totalProjects}</span><span className="lbl">proyectos</span></div>
           <div className="metric"><span className="num">{careersCount}</span><span className="lbl">carreras</span></div>
@@ -78,7 +91,7 @@ export default function CatalogoMagazinePage() {
   const [selectedTags, setSelectedTags] = useState(searchParams.get('tags') || '');
   const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '');
   const [selectedPeriod, setSelectedPeriod] = useState(searchParams.get('period') || '');
-  const [favoritesIDs, setFavoritesIDs] = useState<number[]>([]); // opcional: eliminar si no lo usas
+  const [favoritesIDs, setFavoritesIDs] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProjects = useCallback(async () => {
@@ -107,7 +120,6 @@ export default function CatalogoMagazinePage() {
     fetchProjects();
   }, [fetchProjects, selectedPeriod]);
 
-  // helpers
   const includesCsv = (csv: string, value: string | number) => {
     const list = String(csv || '').split(',').map(s => s.trim()).filter(Boolean);
     return list.length === 0 ? true : list.includes(String(value));
@@ -163,10 +175,9 @@ export default function CatalogoMagazinePage() {
         Catálogo estilo revista — {selectedPeriod ? periodLabelTop + " — " : ''}{year}
       </h1>
 
-      {/* Controles */}
-      <div className="flex flex-col md:flex-row mb-4 gap-2 items-center w-full max-w-7xl">
+      <div className="flex flex-col md:flex-row mb-4 gap-2 items-center w-full max-w-7xl px-3 md:px-0">
         <SearchBar searchTerm={searchTerm} onSearch={handleSearch} />
-        <div className="flex flex-row gap-2">{/* <-- corregido: gap-2 */}
+        <div className="flex flex-row flex-wrap gap-2">
           <Filter title="Horas" values={selectedHours} options={hoursOptions} onChange={handleHoursFilterChange} />
           <Filter title="Carrera" values={selectedTags} options={tagOptions} onChange={handleTagsFilterChange} />
           <Filter title="Modalidad" values={selectedModel} options={modalityOptions} onChange={handleModelFilterChange} />
@@ -177,15 +188,30 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Libro */}
       <div className="book-wrap">
         <HTMLFlipBook
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
-          size="stretch" autoSize
-          width={1100} height={1558} minWidth={520} maxWidth={1400} minHeight={736} maxHeight={1983}
-          showCover usePortrait maxShadowOpacity={0.5} drawShadow startPage={0}
-          flippingTime={800} clickEventForward={false} mobileScrollSupport={false}
-          className="shadow-xl" useMouseEvents swipeDistance={50} showPageCorners disableFlipByClick={false}
+          size="stretch"
+          autoSize
+          width={1100}
+          height={1558}
+          minWidth={480}
+          maxWidth={1600}
+          minHeight={680}
+          maxHeight={2200}
+          showCover
+          usePortrait
+          maxShadowOpacity={0.5}
+          drawShadow
+          startPage={0}
+          flippingTime={800}
+          clickEventForward={false}
+          mobileScrollSupport
+          className="shadow-xl"
+          useMouseEvents
+          swipeDistance={50}
+          showPageCorners
+          disableFlipByClick={false}
         >
           {/* PORTADA */}
           {(() => {
@@ -197,10 +223,14 @@ export default function CatalogoMagazinePage() {
             return (
               <div key="cover" className="page hard cover-page" data-density="hard">
                 <CoverPage
-                  title="Catálogo de Proyectos" subtitle="Revista de Servicio Social"
-                  periodLabel={periodLabelTop} year={year}
-                  totalProjects={totalProjects} careersCount={careersCount}
-                  onlineCount={onlineCount} presencialCount={presencialCount}
+                  title="Catálogo de Proyectos"
+                  subtitle="Revista de Servicio Social"
+                  periodLabel={periodLabelTop}
+                  year={year}
+                  totalProjects={totalProjects}
+                  careersCount={careersCount}
+                  onlineCount={onlineCount}
+                  presencialCount={presencialCount}
                 />
               </div>
             );
@@ -210,10 +240,7 @@ export default function CatalogoMagazinePage() {
           {filteredProjects.map((project) => {
             const periodLabel = getPeriodLabel(project?.period);
             const hoursText = project?.hours ? `${project.hours} horas` : '—';
-            const badge = orgBadgeText(project?.organization);
-
             const activities = (project?.description || '').split('\n').map(s => s.trim()).filter(Boolean);
-
             const groupKey = (project as any)?.groupKey ?? (project as any)?.group_key ?? '';
             const abilitiesText = (() => {
               const raw = (project as any)?.abilities ?? (project as any)?.skills ?? '';
@@ -236,7 +263,6 @@ export default function CatalogoMagazinePage() {
                       {periodLabel && <span className="sep">·</span>}
                     </div>
 
-                    {/* SOLO tags en el header */}
                     <div className="chips bottom" role="list">
                       {project?.tags?.slice(0, 3).map((t, i) => (
                         <span className="chip" key={`tag-${project.id}-${i}`} role="listitem" title={t.name}>
@@ -247,7 +273,6 @@ export default function CatalogoMagazinePage() {
                   </header>
 
                   <section className="content no-scroll">
-                    {/* Columna izquierda */}
                     <div>
                       <p className="kicker">Objetivo del proyecto</p>
                       <p className="lead clamp-4">{project?.objective || '—'}</p>
@@ -300,10 +325,9 @@ export default function CatalogoMagazinePage() {
                       )}
                     </div>
 
-                    {/* Columna derecha (IMAGEN ARRIBA) */}
                     <aside className="aside-col">
                       {project?.image && (
-                        <figure className="org-media org-media--aside">{/* sin 'card' */}
+                        <figure className="org-media org-media--aside">
                           <Image
                             as={NextImage}
                             isBlurred
@@ -362,25 +386,17 @@ export default function CatalogoMagazinePage() {
                           </div>
                         </div>
                       </div>
-
                     </aside>
                   </section>
 
-                  {/* FOOTER fijo con group y groupKey */}
                   <footer className="page-footer">
                     <div className="footer-row" role="list">
                       <span className="footer-label">Grupo:</span>
-                      <span className="footer-value">
-                        {(project?.group ?? '').toString().trim() || '—'}
-                      </span>
-
+                      <span className="footer-value">{(project?.group ?? '').toString().trim() || '—'}</span>
                       <span className="footer-label">Clave:</span>
-                      <span className="footer-value">
-                        {(groupKey ?? '').toString().trim() || '—'}
-                      </span>
+                      <span className="footer-value">{((project as any)?.groupKey ?? (project as any)?.group_key ?? '').toString().trim() || '—'}</span>
                     </div>
                   </footer>
-
                 </article>
               </div>
             );
@@ -396,14 +412,26 @@ export default function CatalogoMagazinePage() {
           --p: clamp(10px, 1.4vw, 16px); --gap: clamp(10px, 1.6vw, 18px); --radius: 16px;
         }
 
-        .book-wrap{ width: min(96vw, 1400px); aspect-ratio: 480 / 680;
-          height: calc(min(96vw, 1400px) * 680 / 480); margin-inline: auto; }
+        .book-wrap{
+          width: min(96vw, 1600px);
+          height: min(86vh, calc(96vw * 680 / 480));
+          margin-inline: auto;
+        }
+        @media (max-width: 1200px){
+          .book-wrap{ width: 94vw; height: min(88vh, calc(94vw * 680 / 480)); }
+        }
+        @media (max-width: 900px){
+          .book-wrap{ width: 98vw; height: min(88vh, calc(98vw * 680 / 480)); }
+        }
+        @media (max-width: 600px){
+          /* Más altura en móvil para aprovechar pantalla */
+          .book-wrap{ width: 100vw; height: min(92vh, calc(100vw * 680 / 480)); }
+        }
 
         .page, .cover-page{ width:100%; height:100%; }
         .page > .sheet{ height:100%; display:flex; flex-direction:column; }
-
-        .sheet{ width:100%; background:var(--paper); box-shadow:var(--shadow);
-          border-radius:var(--radius); overflow:hidden; position:relative; display:flex; flex-direction:column; }
+        .sheet{ width:100%; background:var(--paper); box-shadow:var(--shadow); border-radius:var(--radius);
+                overflow:hidden; position:relative; display:flex; flex-direction:column; }
 
         .masthead{
           position:relative;
@@ -416,24 +444,21 @@ export default function CatalogoMagazinePage() {
         .chips.top{ margin-bottom:8px } .chips.bottom{ margin-top:8px; row-gap:6px }
         .tag{ display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); padding:6px 12px; border-radius:999px; font-size:.82rem; }
         .chip{ display:inline-flex; gap:8px; align-items:center; border-radius:999px; border:1px solid rgba(255,255,255,.35);
-          padding:6px 10px; font-size:.85rem; background:rgba(255,255,255,.12); backdrop-filter: blur(2px); }
+               padding:6px 10px; font-size:.85rem; background:rgba(255,255,255,.12); backdrop-filter: blur(2px); }
         .chip i{ width:8px; height:8px; border-radius:50%; background:#fff }
         .chip .c1{ background:var(--color-3) } .chip .c2{ background:var(--color-4) } .chip .c3{ background:var(--color-5) }
 
         .title{ margin:10px 0 4px; font-size: clamp(20px, 2.8vw, 32px); line-height:1.15; font-weight:800 }
         .byline{ display:flex; align-items:center; gap:8px; font-size: clamp(13px, 1.5vw, 15px); color:#fff; opacity:.95; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .org-name{ font-weight:700; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .byline .sep{ opacity:.7 } .period{ white-space:nowrap; }
 
         .content.no-scroll{
           display:grid; grid-template-columns: 1.25fr .85fr;
           gap:var(--gap); padding: calc(var(--p) + 4px) var(--p) calc(var(--p) + 8px);
           flex:1 1 auto; align-items:start; overflow:hidden;
         }
-        @media (max-width: 1024px){ .content.no-scroll{grid-template-columns: 1.2fr .95fr} }
-        @media (max-width: 860px){
-          .book-wrap{ width: 96vw; height: calc(96vw * 680 / 480); }
-          .content.no-scroll{grid-template-columns:1fr; padding: var(--p)}
+        @media (max-width: 1024px){
+          .content.no-scroll{ grid-template-columns: 1fr; padding: var(--p); }
         }
 
         .lead{font-size:clamp(13px,1.3vw,15px); color:var(--muted); margin:6px 0 14px}
@@ -451,38 +476,13 @@ export default function CatalogoMagazinePage() {
         .org-media{overflow:hidden; border-radius:12px; padding:0; background:transparent}
         .org-media .org-img{ width:100%; height:auto; display:block; object-fit:contain; max-height: 140px; }
         .org-media--aside .org-img{ max-height: 120px; }
-        .aside-col .org-media { margin-bottom: 8px; } /* aire bajo la imagen */
+        .aside-col .org-media { margin-bottom: 8px; }
 
-        /* ASIDE compacto y sello al fondo */
         .aside-col{ display:flex; flex-direction:column; gap:10px; min-height:0; }
-        .aside-col .badge{
-          margin-top:auto; max-height:72px; overflow:hidden; line-height:1.05;
-          padding:10px 12px; border:1px dashed var(--line); border-radius:12px;
-          font-weight:800; font-size:clamp(12px,1.2vw,14px); background:#fff;
-        }
-        .aside-col .badge span{ display:inline }
 
-        /* Footer centrado */
-        .page-footer{
-          margin-top:auto;
-          padding: 14px var(--p);
-          border-top: 1px solid var(--line);
-          background:#fff;
-        }
-        .footer-row{
-          display:flex;
-          flex-wrap:wrap;
-          gap: 14px;
-          justify-content:center;
-          align-items:center;
-        }
-        .footer-label,
-        .footer-value{
-          font-size: clamp(16px, 1.8vw, 20px);
-          line-height: 1.2;
-          font-weight: 900;
-          color: var(--ink);
-        }
+        .page-footer{ margin-top:auto; padding: 14px var(--p); border-top: 1px solid var(--line); background:#fff; }
+        .footer-row{ display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; align-items:center; }
+        .footer-label, .footer-value{ font-size: clamp(16px, 1.8vw, 20px); line-height: 1.2; font-weight: 900; color: var(--ink); }
 
         /* --------- PORTADA --------- */
         .cover-sheet{ position: relative; height: 100%;
@@ -500,58 +500,33 @@ export default function CatalogoMagazinePage() {
         .cover-period{ color:#fff; font-weight:700; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); padding:6px 12px; border-radius:999px; backdrop-filter: blur(2px); }
         .cover-hero{ display:grid; place-items:center; text-align:center; gap:10px; padding-inline: 12px; }
         .cover-title{ color:#fff; font-weight:900; line-height:1.02; font-size: clamp(28px, 6.0vw, 44px); text-shadow: 0 6px 28px rgba(0,0,0,.18); letter-spacing:.2px; }
-        .cover-subtitle{ color:#fff; opacity:.95; font-size: clamp(14px, 3.0vw, 18px); }
+        .cover-subtitle.with-logo{ display:inline-flex; align-items:center; justify-content:center; margin-top: 12px; }
+        .cover-logo{ width: clamp(220px, 40vmin, 520px); height: clamp(220px, 40vmin, 520px); object-fit: contain; display: block; filter: drop-shadow(0 12px 32px rgba(0,0,0,.28)); }
         .cover-metrics{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-top: 8px; }
         .metric{ background: rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.35); border-radius: 14px; padding: 10px 8px; color:#fff; backdrop-filter: blur(2px); }
         .metric .num{ display:block; font-size: clamp(18px, 5vw, 28px); font-weight: 900; line-height: 1; }
         .metric .lbl{ display:block; font-size: .8rem; opacity:.95; margin-top:2px; }
 
-        /* =======================
-           IMPRESIÓN: evitar cortes
-           ======================= */
-        @media print {
-          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .sheet{ box-shadow: none !important; }
-          .page-footer{ border-top: 1px solid #ccc; background: #fff; }
-
-          /* Quitar clamps/ellipsis y permitir que el texto envuelva */
-          .clamp-1, .clamp-2, .clamp-3, .clamp-4 {
-            display: block !important;
-            -webkit-line-clamp: unset !important;
-            -webkit-box-orient: unset !important;
-            overflow: visible !important;
+        /* ===== Ajustes móviles para que SE VEA TODO ===== */
+        @media (max-width: 600px){
+          /* Permitir scroll vertical del contenido y de la hoja */
+          .sheet{ overflow:auto; -webkit-overflow-scrolling: touch; }
+          .content.no-scroll{ overflow:auto; max-height:none; }
+          /* Mostrar texto completo (sin clamps) en móvil */
+          .clamp-1, .clamp-2, .clamp-3, .clamp-4{
+            display:block !important;
+            -webkit-line-clamp:unset !important;
+            -webkit-box-orient:unset !important;
+            overflow:visible !important;
+            white-space:normal !important;
           }
-          .title {
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: clip !important;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          .byline, .org-name {
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: clip !important;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          .masthead {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            padding-bottom: 12px;
-          }
-          .sheet, .content.no-scroll { overflow: visible !important; }
-        }
-
-        @media (max-width: 860px){
-          .content.no-scroll{grid-template-columns:1fr; padding: var(--p)}
-          .org-media--aside .org-img{ max-height: 140px; }
+          /* Imagen más compacta para liberar espacio */
+          .org-media--aside .org-img{ max-height: 96px; }
+          .card{ padding:10px 12px; }
           .page-footer{ padding: 12px var(--p); }
           .footer-row{ gap: 10px; }
+          /* Métricas en 2 columnas */
+          .cover-metrics{ grid-template-columns: repeat(2, minmax(0,1fr)); }
         }
       `}</style>
     </main>
