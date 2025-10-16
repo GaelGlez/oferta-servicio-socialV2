@@ -60,7 +60,7 @@ function PageContent() {
                     radius="full"
                     size="sm"
                     onClick={() =>
-                      router.push(`/catalogo-magazine?hours=Hasta+${h}&period=${period.value}`)
+                      router.push(`/catalogo?hours=Hasta+${h}&period=${period.value}`)
                     }
                   >
                     {h} hrs
