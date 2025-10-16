@@ -18,6 +18,7 @@ interface BaseProject {
     extraComments: string;
     status: string;
     period: "verano" | "ago-dic" | "invierno" | "feb-jun";
+    quota?: number | string;
 }
 
 export interface Project extends BaseProject {
@@ -109,6 +110,7 @@ export function mapProjectToProjectTagsSplit(project: Project): ProjectTagsSplit
         extraComments: project.extraComments,
         status: project.status,
         period: project.period,
+        quota: project.quota,
     };
 }
 
