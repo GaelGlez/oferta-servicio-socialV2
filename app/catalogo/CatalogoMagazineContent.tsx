@@ -203,12 +203,12 @@ const periodOptions = [
             startPage={0}
             flippingTime={800}
             clickEventForward={false}
-            mobileScrollSupport
+            disableFlipByClick={true}        // evita flip al tocar
+            mobileScrollSupport={false}       // desactiva scroll conflictivo
+            swipeDistance={120}               // más distancia para swipe en móvil
             className="shadow-xl"
             useMouseEvents
-            swipeDistance={50}
             showPageCorners
-            disableFlipByClick={false}
             >
             {/* PORTADA */}
             {(() => {
@@ -248,7 +248,8 @@ const periodOptions = [
                 <div key={project.id} className="page">
                     <article className="sheet">
                     <header className="masthead">
-                        <div className="fav"><FavoriteButton id={project.id.toString()} /></div>
+                        <div className="fav" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton id={project.id.toString()} /></div>
                         <div className="chips top" aria-hidden="true">
                         <span className="tag">{project?.model || 'Modalidad'}</span>
                         </div>
