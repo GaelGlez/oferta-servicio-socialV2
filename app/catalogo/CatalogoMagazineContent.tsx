@@ -92,6 +92,22 @@ const periodOptions = [
     const [favoritesIDs, setFavoritesIDs] = useState<number[]>([]);
     const [error, setError] = useState<string | null>(null);
 
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+
+    useEffect(() => {
+        function updateDeviceType() {
+        const width = window.innerWidth;
+        setIsMobile(width < 768);         // móvil: <768px
+        setIsTablet(width >= 768 && width < 1024); // tablet: 768-1023px
+        }
+
+        updateDeviceType();
+        window.addEventListener('resize', updateDeviceType);
+
+        return () => window.removeEventListener('resize', updateDeviceType);
+    }, []);
+
     const fetchProjects = useCallback(async () => {
         if (contextProjects && contextProjects.length > 0) {
         setProjects(contextProjects.filter(p => p.status === "visible"));
@@ -203,9 +219,9 @@ const periodOptions = [
             startPage={0}
             flippingTime={800}
             clickEventForward={false}
-            disableFlipByClick={true}        // evita flip al tocar
-            mobileScrollSupport={true}       // desactiva scroll conflictivo
-            swipeDistance={120}               // más distancia para swipe en móvil
+            disableFlipByClick={isMobile}        // evita flip al tocar
+            mobileScrollSupport={isMobile || isTablet}       // desactiva scroll conflictivo
+            swipeDistance={isMobile ? 120 : 50}               // más distancia para swipe en móvil
             className="shadow-xl"
             useMouseEvents
             showPageCorners
