@@ -204,7 +204,7 @@ const periodOptions = [
             flippingTime={800}
             clickEventForward={false}
             disableFlipByClick={true}        // evita flip al tocar
-            mobileScrollSupport={false}       // desactiva scroll conflictivo
+            mobileScrollSupport={true}       // desactiva scroll conflictivo
             swipeDistance={120}               // más distancia para swipe en móvil
             className="shadow-xl"
             useMouseEvents
@@ -271,7 +271,7 @@ const periodOptions = [
                     </header>
 
                     <section className="content no-scroll">
-                        <div>
+                        <div onTouchStart={(e) => e.stopPropagation()}>
                         <p className="kicker">Objetivo del proyecto</p>
                         <p className="lead clamp-4">{project?.objective || '—'}</p>
 
