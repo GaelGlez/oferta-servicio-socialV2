@@ -97,28 +97,28 @@
 
 .book-wrap {
   width: min(82vw, 1200px);                 /* antes: 96vw, 1600px */
-  height: min(78vh, calc(82vw * 680 / 480));/* antes: 86vh, calc(96vw...) */
+  height: min(78vh, calc(96vw * 680 / 480));/* antes: 86vh, calc(96vw...) */
   margin-inline: auto;
 }
 
 @media (max-width: 1200px) {
   .book-wrap {
     width: 84vw;                             /* antes: 94vw */
-    height: min(80vh, calc(84vw * 680 / 480));
+    height: min(80vh, calc(94vw * 680 / 480));
   }
 }
 
 @media (max-width: 900px) {
   .book-wrap {
     width: 90vw;                             /* antes: 98vw */
-    height: min(82vh, calc(90vw * 680 / 480));
+    height: min(82vh, calc(98vw * 680 / 480));
   }
 }
 
 @media (max-width: 600px) {
   .book-wrap {
     width: 94vw;                             /* antes: 100vw */
-    height: min(86vh, calc(94vw * 680 / 480));
+    height: min(86vh, calc(100vw * 680 / 480));
   }
 }
 
