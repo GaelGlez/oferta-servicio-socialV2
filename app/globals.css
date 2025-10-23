@@ -95,22 +95,6 @@
     --radius: 16px;
   }
 
-  :root{
-    --masthead-h: 168px;   /* desktop */
-  }
-
-  @media (max-width: 1200px){
-    :root{ --masthead-h: 156px; }  /* tablet grande */
-  }
-
-  @media (max-width: 900px){
-    :root{ --masthead-h: 144px; }  /* tablet chica / phablet */
-  }
-
-  @media (max-width: 600px){
-    :root{ --masthead-h: 132px; }  /* móvil */
-  }
-
   .book-wrap {
     width: min(96vw, 1600px);
     height: min(86vh, calc(96vw * 680 / 480));
@@ -162,55 +146,11 @@
     flex-direction: column;
   }
 
-  .masthead{
+  .masthead {
     position: relative;
     background: linear-gradient(135deg, var(--color-2) 0%, var(--color-1) 55%, var(--color-5) 120%);
     color: white;
-
-    /* ALTURA FIJA en todas las hojas */
-    height: var(--masthead-h);
-
-    /* layout y espaciado */
     padding: calc(var(--p) + 6px) var(--p) calc(var(--p) - 2px);
-    display: flex;
-    flex-direction: column;
-
-    /* si el contenido se excede, no dejamos crecer al header */
-    overflow: hidden;
-  }
-
-  /* Empuja la fila inferior de chips al borde inferior del header */
-  .masthead .chips.bottom{
-    margin-top: auto;  /* clave para que siempre quede al fondo del header */
-  }
-
-  /* Título: como máx. 2 líneas dentro del header */
-  .masthead .title{
-    margin: 6px 0 0;
-    line-height: 1.1;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-break: break-word;
-  }
-
-  /* Byline: 1 línea dentro del header */
-  .masthead .byline{
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Evitar que chips muy largos rompan la altura */
-  .masthead .chip,
-  .masthead .tag{
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .fav {
