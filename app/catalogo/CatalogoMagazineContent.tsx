@@ -15,8 +15,8 @@ import { X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const periodOptions = [
-    { label: "Verano", value: "verano" },
-    { label: "Agosto - Diciembre", value: "ago-dic" },
+    { label: "Invierno", value: "invierno" },
+    { label: "Febrero - Junio", value: "feb-jun" },
     ];
 
     const HTMLFlipBook: any = HTMLFlipBookLib;
