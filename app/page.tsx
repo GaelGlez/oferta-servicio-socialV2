@@ -8,8 +8,8 @@ import { useRouter } from "next/navigation";
 const periodOptions = [
   {
     label: "PERIODO INTENSIVO",
-    label2: "Verano",
-    value: "verano",
+    label2: "Invierno",
+    value: "invierno",
     hours: [60, 100, 200],
     colorFrom: "lime-200",
     colorTo: "lime-500",
@@ -17,8 +17,8 @@ const periodOptions = [
   },
   {
     label: "PERIODO SEMESTRAL",
-    label2: "Agosto - Diciembre",
-    value: "ago-dic",
+    label2: "Febrero - Junio",
+    value: "feb-jun",
     hours: [60, 120, 180],
     colorFrom: "orange-200",
     colorTo: "orange-500",

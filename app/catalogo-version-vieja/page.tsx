@@ -11,8 +11,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, Suspense } from "react";
 
 const periodOptions = [
-  { label: "Verano", value: "verano" },
-  { label: "Agosto - Diciembre", value: "ago-dic" },
+  { label: "Invierno", value: "invierno" },
+  { label: "Febrero - Junio", value: "feb-jun" },
   //{ label: "Invierno", value: "invierno" },
   //{ label: "Febrero - Junio", value: "feb-jun" },
 ];
