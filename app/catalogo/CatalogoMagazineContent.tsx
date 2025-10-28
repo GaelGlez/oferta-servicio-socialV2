@@ -179,7 +179,7 @@ export default function CatalogoMagazinePage() {
     [getApi]
   );
 
-  // ---- FIX: flips robustos (turnToPrev/Next o flipPrev/Next) ----
+  // Flips robustos
   const safeFlip = useCallback(
     (dir: "prev" | "next") => {
       const api = getApi();
@@ -399,7 +399,7 @@ export default function CatalogoMagazinePage() {
       </div>
 
       {/* Flipbook */}
-      <div className="relative w-full max-w-[1100px] select-none">
+      <div className="relative w-full max-w-[1100px] select-none overflow-hidden">
         <HTMLFlipBook
           ref={bookRef}
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
@@ -407,9 +407,9 @@ export default function CatalogoMagazinePage() {
           autoSize
           width={1100}
           height={1558}
-          minWidth={480}
+          minWidth={isMobile ? 320 : 480}     // << evita zoom en pantallas estrechas
           maxWidth={1600}
-          minHeight={680}
+          minHeight={isMobile ? 520 : 680}    // << altura mínima más chica en móvil
           maxHeight={2200}
           showCover
           usePortrait
@@ -698,29 +698,17 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* === BARRA INFERIOR (SOLO MÓVIL, DEBAJO DE LA REVISTA) === */}
+        {/* === BARRa INFERIOR (SOLO MÓVIL) === */}
         <div className="md:hidden w-full">
           <div className="mx-auto mt-3 w-[min(92%,28rem)]">
             <div className="flex items-center justify-between gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-              <Button
-                radius="full"
-                size="sm"
-                variant="flat"
-                onPress={goPrev}
-                isDisabled={isFirst}
-              >
+              <Button radius="full" size="sm" variant="flat" onPress={goPrev} isDisabled={isFirst}>
                 ← Atrás
               </Button>
               <span className="text-xs tabular-nums">
                 {page} / {pagesTotal}
               </span>
-              <Button
-                radius="full"
-                size="sm"
-                variant="flat"
-                onPress={goNext}
-                isDisabled={isLast}
-              >
+              <Button radius="full" size="sm" variant="flat" onPress={goNext} isDisabled={isLast}>
                 Siguiente →
               </Button>
             </div>
