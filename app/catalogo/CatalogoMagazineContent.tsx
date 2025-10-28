@@ -151,7 +151,7 @@ export default function CatalogoMagazinePage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
 
-  // Flipbook ref + estado de páginas
+  // Flipbook: ref y estado de páginas
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(1);
   const [pagesTotal, setPagesTotal] = useState(1);
@@ -177,24 +177,20 @@ export default function CatalogoMagazinePage() {
     setIsLast(idx >= total - 1);
   }, [getApi]);
 
-  const goPrev = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+  const goPrev = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
-    if ((api.getCurrentPageIndex?.() ?? 0) > 0) {
-      api.flipPrev();
-    }
+    if ((api.getCurrentPageIndex?.() ?? 0) > 0) api.flipPrev();
   }, [getApi]);
 
-  const goNext = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+  const goNext = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
     const idx = api.getCurrentPageIndex?.() ?? 0;
     const total = api.getPageCount?.() ?? 1;
-    if (idx < total - 1) {
-      api.flipNext();
-    }
+    if (idx < total - 1) api.flipNext();
   }, [getApi]);
 
   useEffect(() => {
@@ -320,7 +316,7 @@ export default function CatalogoMagazinePage() {
     return m ? m[0] : String(h);
   };
 
-  const year = new Date().getFullYear()+1;
+  const year = new Date().getFullYear();
   const periodLabelTop = getPeriodLabel(selectedPeriod);
 
   return (
@@ -392,21 +388,16 @@ export default function CatalogoMagazinePage() {
           maxShadowOpacity={0.5}
           drawShadow
           startPage={0}
-          flippingTime={800}
+          /* 👇 Desactivamos flips por click/drag; solo botones/overlays */
+          disableFlipByClick={true}
+          useMouseEvents={false}
+          swipeDistance={999}
           clickEventForward={false}
-          /* En móvil NO deshabilitamos los clics; usamos overlays/btns con z-index */
-          disableFlipByClick={false}
-          mobileScrollSupport={isMobile || isTablet}
-          swipeDistance={isMobile ? 120 : 50}
+          mobileScrollSupport={true}
           className="shadow-xl z-10"
-          useMouseEvents
           showPageCorners
-          onInit={() => {
-            syncBounds();
-          }}
-          onFlip={() => {
-            syncBounds();
-          }}
+          onInit={syncBounds}
+          onFlip={syncBounds}
         >
           {/* PORTADA */}
           {(() => {
@@ -490,7 +481,8 @@ export default function CatalogoMagazinePage() {
                   </header>
 
                   <section className="content no-scroll">
-                    <div onTouchStart={(e) => e.stopPropagation()}>
+                    {/* contenido principal */}
+                    <div>
                       <p className="kicker">Objetivo del proyecto</p>
                       <p className="lead clamp-4">{project?.objective || "—"}</p>
 
@@ -677,52 +669,54 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* === ZONAS TÁCTILES (móvil) === */}
+        {/* === ZONAS TÁCTILES (solo móvil) === */}
         <div className="md:hidden pointer-events-none">
-        {/* Izquierda */}
-        <div
+          {/* Izquierda */}
+          <div
             onClick={goPrev}
-            onTouchStart={(e) => { e.stopPropagation(); }}
-            className={`pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isFirst ? "opacity-0" : "opacity-0"}`}
+            className="pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[60%] w-[24%] z-40"
             aria-hidden
             title="Página anterior"
-        />
-        {/* Derecha */}
-        <div
+          />
+          {/* Derecha */}
+          <div
             onClick={goNext}
-            onTouchStart={(e) => { e.stopPropagation(); }}
-            className={`pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isLast ? "opacity-0" : "opacity-0"}`}
+            className="pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[60%] w-[24%] z-40"
             aria-hidden
             title="Página siguiente"
-        />
+          />
         </div>
 
-        {/* === BOTONES LATERALES (solo móvil) === */}
+        {/* === BOTONES VISIBLES (solo móvil) === */}
         <button
-        type="button"
-        aria-label="Página anterior"
-        onClick={goPrev}
-        onTouchStart={(e) => { e.stopPropagation(); }}
-        disabled={isFirst}
-        className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+          type="button"
+          aria-label="Página anterior"
+          onClick={goPrev}
+          disabled={isFirst}
+          className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
             isFirst ? "opacity-40 pointer-events-none" : ""
-        }`}
+          }`}
         >
-        ◀
+          ◀
         </button>
         <button
-        type="button"
-        aria-label="Página siguiente"
-        onClick={goNext}
-        onTouchStart={(e) => { e.stopPropagation(); }}
-        disabled={isLast}
-        className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+          type="button"
+          aria-label="Página siguiente"
+          onClick={goNext}
+          disabled={isLast}
+          className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
             isLast ? "opacity-40 pointer-events-none" : ""
-        }`}
+          }`}
         >
-        ▶
+          ▶
         </button>
 
+        {/* Contador (solo móvil) */}
+        <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-2 z-50 flex justify-center">
+          <span className="pointer-events-auto rounded-full bg-white/90 px-3 py-1 text-xs shadow">
+            {page} / {pagesTotal}
+          </span>
+        </div>
       </div>
     </main>
   );
