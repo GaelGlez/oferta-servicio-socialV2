@@ -398,30 +398,35 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Flipbook */}
-      <div className="relative w-full max-w-[1100px] select-none overflow-hidden">
+      {/* Flipbook: wrapper sin max-width restrictivo en desktop */}
+      <div className="relative w-full select-none overflow-hidden mx-auto md:max-w-none">
         <HTMLFlipBook
           ref={bookRef}
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
-          size="stretch"
-          autoSize
-          width={1100}
-          height={1558}
-          minWidth={isMobile ? 320 : 480}     // << evita zoom en pantallas estrechas
-          maxWidth={1600}
-          minHeight={isMobile ? 520 : 680}    // << altura mínima más chica en móvil
-          maxHeight={2200}
+
+          /* ===== Tamaño/control por dispositivo ===== */
+          size={isMobile ? "stretch" : "fixed"}
+          autoSize={!isMobile ? false : true}
+          width={isMobile ? 1100 : 1200}
+          height={isMobile ? 1558 : 1700}
+          minWidth={isMobile ? 320 : 960}
+          maxWidth={isMobile ? 1600 : 1400}
+          minHeight={isMobile ? 520 : 800}
+          maxHeight={isMobile ? 2200 : 2000}
+
           showCover
           usePortrait
           maxShadowOpacity={0.5}
           drawShadow
           startPage={0}
-          // móvil: sin flip por tap/drag; desktop: gestos OK
+
+          // Interacción
           disableFlipByClick={isMobile}
           useMouseEvents={!isMobile}
           swipeDistance={isMobile ? 999 : 50}
           clickEventForward={false}
           mobileScrollSupport={true}
+
           className="shadow-xl z-10"
           showPageCorners
           onInit={(inst: any) => {
@@ -698,17 +703,29 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* === BARRa INFERIOR (SOLO MÓVIL) === */}
+        {/* === BARRA INFERIOR (SOLO MÓVIL, DEBAJO DE LA REVISTA) === */}
         <div className="md:hidden w-full">
           <div className="mx-auto mt-3 w-[min(92%,28rem)]">
             <div className="flex items-center justify-between gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-              <Button radius="full" size="sm" variant="flat" onPress={goPrev} isDisabled={isFirst}>
+              <Button
+                radius="full"
+                size="sm"
+                variant="flat"
+                onPress={goPrev}
+                isDisabled={isFirst}
+              >
                 ← Atrás
               </Button>
               <span className="text-xs tabular-nums">
                 {page} / {pagesTotal}
               </span>
-              <Button radius="full" size="sm" variant="flat" onPress={goNext} isDisabled={isLast}>
+              <Button
+                radius="full"
+                size="sm"
+                variant="flat"
+                onPress={goNext}
+                isDisabled={isLast}
+              >
                 Siguiente →
               </Button>
             </div>
