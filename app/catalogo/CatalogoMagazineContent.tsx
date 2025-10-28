@@ -320,7 +320,7 @@ export default function CatalogoMagazinePage() {
     return m ? m[0] : String(h);
   };
 
-  const year = new Date().getFullYear();
+  const year = new Date().getFullYear()+1;
   const periodLabelTop = getPeriodLabel(selectedPeriod);
 
   return (
