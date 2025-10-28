@@ -1,3 +1,5 @@
+"use client";
+
 import React, {
   useEffect,
   useState,
@@ -151,7 +153,7 @@ export default function CatalogoMagazinePage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
 
-  // Flipbook ref + contador de páginas
+  // NEW: ref + contador de páginas
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(1);
   const [pagesTotal, setPagesTotal] = useState(1);
@@ -216,15 +218,6 @@ export default function CatalogoMagazinePage() {
     fetchProjects();
   }, [fetchProjects, selectedPeriod]);
 
-  // Recalcular contador cuando cambien las páginas (filtros, etc.)
-  useEffect(() => {
-    const api = bookRef.current?.pageFlip?.();
-    if (api) {
-      setPagesTotal(api.getPageCount());
-      setPage(api.getCurrentPageIndex() + 1);
-    }
-  }, [filteredProjects]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const includesCsv = (csv: string, value: string | number) => {
     const list = String(csv || "")
       .split(",")
@@ -286,7 +279,7 @@ export default function CatalogoMagazinePage() {
     if (h == null) return "—";
     const m = String(h).trim().match(/\d+/);
     return m ? m[0] : String(h);
-  };
+    };
 
   const year = new Date().getFullYear();
   const periodLabelTop = getPeriodLabel(selectedPeriod);
@@ -342,7 +335,7 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Flipbook + Controles */}
+      {/* Wrapper para gestos + botones */}
       <div className="book-wrap relative overscroll-none touch-pan-y select-none">
         <HTMLFlipBook
           ref={bookRef}
@@ -362,7 +355,7 @@ export default function CatalogoMagazinePage() {
           startPage={0}
           flippingTime={800}
           clickEventForward={false}
-          disableFlipByClick={isMobile} // navegamos con botones en móvil
+          disableFlipByClick={isMobile} // en móvil navegamos con barra inferior
           mobileScrollSupport={isMobile || isTablet}
           swipeDistance={isMobile ? 120 : 50}
           className="shadow-xl z-10"
@@ -471,12 +464,11 @@ export default function CatalogoMagazinePage() {
                         {activities.length ? (
                           <ul className="list list-clamped">
                             {activities.map(
-                              (line, i) =>
-                                line && (
-                                  <li className="clamp-1" key={i}>
-                                    {line}
-                                  </li>
-                                )
+                              (line, i) => line && (
+                                <li className="clamp-1" key={i}>
+                                  {line}
+                                </li>
+                              )
                             )}
                           </ul>
                         ) : (
@@ -650,32 +642,51 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* CONTROLES LATERALES (móvil y desktop) */}
-        <button
-          type="button"
-          aria-label="Página anterior"
-          onClick={() => bookRef.current?.pageFlip().flipPrev()}
-          className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 md:h-10 md:w-10 rounded-full border bg-white/95 shadow-lg flex items-center justify-center active:scale-95"
-          style={{ touchAction: "manipulation" }}
-        >
-          ◀
-        </button>
+        {/* Flechas laterales: solo md+ */}
+        <div className="hidden md:block">
+          <button
+            type="button"
+            aria-label="Página anterior"
+            onClick={() => bookRef.current?.pageFlip().flipPrev()}
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border px-3 py-2 text-sm shadow-md bg-white/90 hover:bg-white"
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            aria-label="Página siguiente"
+            onClick={() => bookRef.current?.pageFlip().flipNext()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border px-3 py-2 text-sm shadow-md bg-white/90 hover:bg-white"
+          >
+            ▶
+          </button>
+        </div>
 
-        <button
-          type="button"
-          aria-label="Página siguiente"
-          onClick={() => bookRef.current?.pageFlip().flipNext()}
-          className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 md:h-10 md:w-10 rounded-full border bg-white/95 shadow-lg flex items-center justify-center active:scale-95"
-          style={{ touchAction: "manipulation" }}
-        >
-          ▶
-        </button>
+        {/* Barra inferior: solo móvil */}
+        <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-0 z-20 pb-3 pb-[env(safe-area-inset-bottom)]">
+          <div className="pointer-events-auto mx-auto flex w-[min(92%,28rem)] items-center justify-between gap-2 rounded-full bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
+            <button
+              type="button"
+              onClick={() => bookRef.current?.pageFlip().flipPrev()}
+              className="rounded-full border px-3 py-2 text-sm bg-white hover:bg-neutral-50 active:scale-95 transition"
+              aria-label="Página anterior"
+            >
+              ◀
+            </button>
 
-        {/* Indicador de página */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-10 text-center">
-          <span className="inline-block rounded-full bg-white/90 px-3 py-1 text-xs tabular-nums shadow">
-            {page} / {pagesTotal}
-          </span>
+            <span className="text-xs tabular-nums">
+              {page} / {pagesTotal}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => bookRef.current?.pageFlip().flipNext()}
+              className="rounded-full border px-3 py-2 text-sm bg-white hover:bg-neutral-50 active:scale-95 transition"
+              aria-label="Página siguiente"
+            >
+              ▶
+            </button>
+          </div>
         </div>
       </div>
     </main>
