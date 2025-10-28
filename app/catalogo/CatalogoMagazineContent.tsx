@@ -677,58 +677,52 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* === ZONAS TÁCTILES (móvil) para avanzar/retroceder === */}
+        {/* === ZONAS TÁCTILES (móvil) === */}
         <div className="md:hidden pointer-events-none">
-          {/* Izquierda */}
-          <div
+        {/* Izquierda */}
+        <div
             onClick={goPrev}
             onTouchStart={(e) => { e.stopPropagation(); }}
             className={`pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isFirst ? "opacity-0" : "opacity-0"}`}
             aria-hidden
             title="Página anterior"
-          />
-          {/* Derecha */}
-          <div
+        />
+        {/* Derecha */}
+        <div
             onClick={goNext}
             onTouchStart={(e) => { e.stopPropagation(); }}
             className={`pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isLast ? "opacity-0" : "opacity-0"}`}
             aria-hidden
             title="Página siguiente"
-          />
+        />
         </div>
 
-        {/* === BOTONES LATERALES (móvil y escritorio) al centro vertical === */}
+        {/* === BOTONES LATERALES (solo móvil) === */}
         <button
-          type="button"
-          aria-label="Página anterior"
-          onClick={goPrev}
-          onTouchStart={(e) => { e.stopPropagation(); }}
-          disabled={isFirst}
-          className={`absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+        type="button"
+        aria-label="Página anterior"
+        onClick={goPrev}
+        onTouchStart={(e) => { e.stopPropagation(); }}
+        disabled={isFirst}
+        className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
             isFirst ? "opacity-40 pointer-events-none" : ""
-          }`}
+        }`}
         >
-          ◀
+        ◀
         </button>
         <button
-          type="button"
-          aria-label="Página siguiente"
-          onClick={goNext}
-          onTouchStart={(e) => { e.stopPropagation(); }}
-          disabled={isLast}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+        type="button"
+        aria-label="Página siguiente"
+        onClick={goNext}
+        onTouchStart={(e) => { e.stopPropagation(); }}
+        disabled={isLast}
+        className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
             isLast ? "opacity-40 pointer-events-none" : ""
-          }`}
+        }`}
         >
-          ▶
+        ▶
         </button>
 
-        {/* Contador centrado abajo (opcional) */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-50 flex justify-center">
-          <span className="pointer-events-auto rounded-full bg-white/90 px-3 py-1 text-xs shadow">
-            {page} / {pagesTotal}
-          </span>
-        </div>
       </div>
     </main>
   );
