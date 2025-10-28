@@ -17,7 +17,7 @@ import FavoriteButton from "../proyecto/[proyecto]/favorite-button";
 
 import { Filter, SearchBar } from "@/components/home";
 import Select from "@/components/home/Select";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const periodOptions = [
@@ -151,7 +151,7 @@ export default function CatalogoMagazinePage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
 
-  // Flipbook ref + estado de páginas
+  // Flipbook ref + contador de páginas
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(1);
   const [pagesTotal, setPagesTotal] = useState(1);
@@ -215,6 +215,15 @@ export default function CatalogoMagazinePage() {
     setFavoritesIDs(Object.keys(favorites).map(Number));
     fetchProjects();
   }, [fetchProjects, selectedPeriod]);
+
+  // Recalcular contador cuando cambien las páginas (filtros, etc.)
+  useEffect(() => {
+    const api = bookRef.current?.pageFlip?.();
+    if (api) {
+      setPagesTotal(api.getPageCount());
+      setPage(api.getCurrentPageIndex() + 1);
+    }
+  }, [filteredProjects]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const includesCsv = (csv: string, value: string | number) => {
     const list = String(csv || "")
@@ -282,15 +291,6 @@ export default function CatalogoMagazinePage() {
   const year = new Date().getFullYear();
   const periodLabelTop = getPeriodLabel(selectedPeriod);
 
-  // Recalcular páginas si cambian los datos/filtrado
-  useEffect(() => {
-    const api = bookRef.current?.pageFlip?.();
-    if (api) {
-      setPagesTotal(api.getPageCount());
-      setPage(api.getCurrentPageIndex() + 1);
-    }
-  }, [filteredProjects]);
-
   return (
     <main className="flex flex-col items-center py-4">
       <h1 className="text-2xl md:text-3xl font-bold mb-4">
@@ -342,7 +342,7 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Wrapper para gestos + botones */}
+      {/* Flipbook + Controles */}
       <div className="book-wrap relative overscroll-none touch-pan-y select-none">
         <HTMLFlipBook
           ref={bookRef}
@@ -362,7 +362,7 @@ export default function CatalogoMagazinePage() {
           startPage={0}
           flippingTime={800}
           clickEventForward={false}
-          disableFlipByClick={isMobile} // en móvil navegamos con botones
+          disableFlipByClick={isMobile} // navegamos con botones en móvil
           mobileScrollSupport={isMobile || isTablet}
           swipeDistance={isMobile ? 120 : 50}
           className="shadow-xl z-10"
@@ -650,36 +650,30 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* Controles laterales (móvil y desktop) */}
+        {/* CONTROLES LATERALES (móvil y desktop) */}
         <button
           type="button"
           aria-label="Página anterior"
           onClick={() => bookRef.current?.pageFlip().flipPrev()}
-          className="group absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20
-                     h-12 w-12 md:h-10 md:w-10 rounded-full border shadow-lg
-                     bg-white/95 hover:bg-white active:scale-95
-                     border-[#0047AB]/20 focus:outline-none focus:ring-2 focus:ring-[#0047AB]/40 flex items-center justify-center"
+          className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 md:h-10 md:w-10 rounded-full border bg-white/95 shadow-lg flex items-center justify-center active:scale-95"
           style={{ touchAction: "manipulation" }}
         >
-          <ChevronLeft className="h-6 w-6 text-[#0047AB] group-active:-translate-x-0.5 transition" />
+          ◀
         </button>
 
         <button
           type="button"
           aria-label="Página siguiente"
           onClick={() => bookRef.current?.pageFlip().flipNext()}
-          className="group absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20
-                     h-12 w-12 md:h-10 md:w-10 rounded-full border shadow-lg
-                     bg-white/95 hover:bg-white active:scale-95
-                     border-[#0047AB]/20 focus:outline-none focus:ring-2 focus:ring-[#0047AB]/40 flex items-center justify-center"
+          className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 md:h-10 md:w-10 rounded-full border bg-white/95 shadow-lg flex items-center justify-center active:scale-95"
           style={{ touchAction: "manipulation" }}
         >
-          <ChevronRight className="h-6 w-6 text-[#0047AB] group-active:translate-x-0.5 transition" />
+          ▶
         </button>
 
         {/* Indicador de página */}
         <div className="pointer-events-none absolute inset-x-0 bottom-2 z-10 text-center">
-          <span className="inline-block rounded-full bg-white/90 px-3 py-1 text-xs tabular-nums shadow border border-[#0047AB]/15 text-[#0047AB] backdrop-blur">
+          <span className="inline-block rounded-full bg-white/90 px-3 py-1 text-xs tabular-nums shadow">
             {page} / {pagesTotal}
           </span>
         </div>
