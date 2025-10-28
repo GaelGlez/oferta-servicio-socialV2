@@ -158,34 +158,6 @@ export default function CatalogoMagazinePage() {
   const [isFirst, setIsFirst] = useState(true);
   const [isLast, setIsLast] = useState(false);
 
-  // Sensibilidad/Tap-only helpers
-  const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
-
-  const onOverlayTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    touchStartRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
-  };
-
-  const onOverlayTouchEnd =
-    (side: "prev" | "next") => (e: React.TouchEvent) => {
-      const start = touchStartRef.current;
-      const end = e.changedTouches[0];
-      if (!start || !end) return;
-
-      const dx = Math.abs(end.clientX - start.x);
-      const dy = Math.abs(end.clientY - start.y);
-      const dt = Date.now() - start.t;
-
-      const MAX_MOVE = 12; // píxeles
-      const MAX_TIME = 300; // ms
-
-      if (dx <= MAX_MOVE && dy <= MAX_MOVE && dt <= MAX_TIME) {
-        if (side === "prev") goPrev();
-        else goNext();
-      }
-      // Si fue scroll o gesto largo, se ignora
-    };
-
   const getApi = useCallback(() => {
     try {
       return bookRef.current?.pageFlip?.();
@@ -205,18 +177,24 @@ export default function CatalogoMagazinePage() {
     setIsLast(idx >= total - 1);
   }, [getApi]);
 
-  const goPrev = useCallback(() => {
+  const goPrev = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+    e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
-    if ((api.getCurrentPageIndex?.() ?? 0) > 0) api.flipPrev();
+    if ((api.getCurrentPageIndex?.() ?? 0) > 0) {
+      api.flipPrev();
+    }
   }, [getApi]);
 
-  const goNext = useCallback(() => {
+  const goNext = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+    e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
     const idx = api.getCurrentPageIndex?.() ?? 0;
     const total = api.getPageCount?.() ?? 1;
-    if (idx < total - 1) api.flipNext();
+    if (idx < total - 1) {
+      api.flipNext();
+    }
   }, [getApi]);
 
   useEffect(() => {
@@ -416,14 +394,19 @@ export default function CatalogoMagazinePage() {
           startPage={0}
           flippingTime={800}
           clickEventForward={false}
-          disableFlipByClick={true}     // ← evita flips por tocar la página
-          mobileScrollSupport={true}
-          swipeDistance={220}           // ← gesto horizontal más exigente
+          /* En móvil NO deshabilitamos los clics; usamos overlays/btns con z-index */
+          disableFlipByClick={false}
+          mobileScrollSupport={isMobile || isTablet}
+          swipeDistance={isMobile ? 120 : 50}
           className="shadow-xl z-10"
           useMouseEvents
           showPageCorners
-          onInit={syncBounds}
-          onFlip={syncBounds}
+          onInit={() => {
+            syncBounds();
+          }}
+          onFlip={() => {
+            syncBounds();
+          }}
         >
           {/* PORTADA */}
           {(() => {
@@ -694,37 +677,52 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* === ZONAS TÁCTILES INVISIBLES (solo móvil) === */}
+        {/* === ZONAS TÁCTILES (móvil) === */}
         <div className="md:hidden pointer-events-none">
-          {/* Izquierda (Atrás) */}
-          <div
-            onTouchStart={(e) => { e.stopPropagation(); onOverlayTouchStart(e); }}
-            onTouchEnd={(e) => { e.stopPropagation(); onOverlayTouchEnd("prev")(e); }}
-            className="pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[60%] w-[24%] z-50"
-            style={{ touchAction: "pan-y", opacity: 0 }}
-            role="button"
-            aria-label="Página anterior"
-            tabIndex={-1}
-          />
-          {/* Derecha (Siguiente) */}
-          <div
-            onTouchStart={(e) => { e.stopPropagation(); onOverlayTouchStart(e); }}
-            onTouchEnd={(e) => { e.stopPropagation(); onOverlayTouchEnd("next")(e); }}
-            className="pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[60%] w-[24%] z-50"
-            style={{ touchAction: "pan-y", opacity: 0 }}
-            role="button"
-            aria-label="Página siguiente"
-            tabIndex={-1}
-          />
+        {/* Izquierda */}
+        <div
+            onClick={goPrev}
+            onTouchStart={(e) => { e.stopPropagation(); }}
+            className={`pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isFirst ? "opacity-0" : "opacity-0"}`}
+            aria-hidden
+            title="Página anterior"
+        />
+        {/* Derecha */}
+        <div
+            onClick={goNext}
+            onTouchStart={(e) => { e.stopPropagation(); }}
+            className={`pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isLast ? "opacity-0" : "opacity-0"}`}
+            aria-hidden
+            title="Página siguiente"
+        />
         </div>
 
-        {/* Contador opcional — visible en ambas vistas
-            (Si no lo quieres en escritorio, añade md:hidden) */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-40 flex justify-center">
-          <span className="pointer-events-auto rounded-full bg-white/90 px-3 py-1 text-xs shadow">
-            {page} / {pagesTotal}
-          </span>
-        </div>
+        {/* === BOTONES LATERALES (solo móvil) === */}
+        <button
+        type="button"
+        aria-label="Página anterior"
+        onClick={goPrev}
+        onTouchStart={(e) => { e.stopPropagation(); }}
+        disabled={isFirst}
+        className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isFirst ? "opacity-40 pointer-events-none" : ""
+        }`}
+        >
+        ◀
+        </button>
+        <button
+        type="button"
+        aria-label="Página siguiente"
+        onClick={goNext}
+        onTouchStart={(e) => { e.stopPropagation(); }}
+        disabled={isLast}
+        className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isLast ? "opacity-40 pointer-events-none" : ""
+        }`}
+        >
+        ▶
+        </button>
+
       </div>
     </main>
   );
