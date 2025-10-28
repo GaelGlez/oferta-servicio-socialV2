@@ -166,11 +166,11 @@ export default function CatalogoMagazinePage() {
     }
   }, []);
 
-  const syncBounds = useCallback(() => {
-    const api = getApi();
-    if (!api) return;
-    const idx = api.getCurrentPageIndex?.() ?? 0;
-    const total = api.getPageCount?.() ?? 1;
+  const syncFromApi = useCallback((api?: any) => {
+    const _api = api ?? getApi();
+    if (!_api) return;
+    const idx = _api.getCurrentPageIndex?.() ?? 0;
+    const total = _api.getPageCount?.() ?? 1;
     setPage(idx + 1);
     setPagesTotal(total);
     setIsFirst(idx <= 0);
@@ -181,7 +181,10 @@ export default function CatalogoMagazinePage() {
     e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
-    if ((api.getCurrentPageIndex?.() ?? 0) > 0) api.flipPrev();
+    if ((api.getCurrentPageIndex?.() ?? 0) > 0) {
+      api.flipPrev();
+      // el onFlip actualizará estados
+    }
   }, [getApi]);
 
   const goNext = useCallback((e?: React.MouseEvent) => {
@@ -190,9 +193,12 @@ export default function CatalogoMagazinePage() {
     if (!api) return;
     const idx = api.getCurrentPageIndex?.() ?? 0;
     const total = api.getPageCount?.() ?? 1;
-    if (idx < total - 1) api.flipNext();
+    if (idx < total - 1) {
+      api.flipNext();
+    }
   }, [getApi]);
 
+  // detectar dispositivo
   useEffect(() => {
     function updateDeviceType() {
       const width = window.innerWidth;
@@ -203,6 +209,17 @@ export default function CatalogoMagazinePage() {
     window.addEventListener("resize", updateDeviceType);
     return () => window.removeEventListener("resize", updateDeviceType);
   }, []);
+
+  // navegación por teclado en escritorio
+  useEffect(() => {
+    if (isMobile) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, goPrev, goNext]);
 
   const fetchProjects = useCallback(async () => {
     if (contextProjects && contextProjects.length > 0) {
@@ -316,7 +333,7 @@ export default function CatalogoMagazinePage() {
     return m ? m[0] : String(h);
   };
 
-  const year = new Date().getFullYear();
+  const year = new Date().getFullYear()+1;
   const periodLabelTop = getPeriodLabel(selectedPeriod);
 
   return (
@@ -388,16 +405,23 @@ export default function CatalogoMagazinePage() {
           maxShadowOpacity={0.5}
           drawShadow
           startPage={0}
-          /* 👇 Desactivamos flips por click/drag; solo botones/overlays */
-          disableFlipByClick={true}
-          useMouseEvents={false}
-          swipeDistance={999}
+          /* 👇 Comportamiento condicional por dispositivo */
+          disableFlipByClick={isMobile}        // en móvil NO click para pasar página
+          useMouseEvents={!isMobile}           // en desktop permitir drag/click
+          swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
           clickEventForward={false}
           mobileScrollSupport={true}
           className="shadow-xl z-10"
           showPageCorners
-          onInit={syncBounds}
-          onFlip={syncBounds}
+          onInit={(inst: any) => {
+            try {
+              const api = inst?.pageFlip?.();
+              syncFromApi(api);
+            } catch {}
+          }}
+          onFlip={() => {
+            syncFromApi();
+          }}
         >
           {/* PORTADA */}
           {(() => {
@@ -481,7 +505,6 @@ export default function CatalogoMagazinePage() {
                   </header>
 
                   <section className="content no-scroll">
-                    {/* contenido principal */}
                     <div>
                       <p className="kicker">Objetivo del proyecto</p>
                       <p className="lead clamp-4">{project?.objective || "—"}</p>
