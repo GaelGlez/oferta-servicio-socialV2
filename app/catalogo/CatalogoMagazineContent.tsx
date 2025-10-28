@@ -1,5 +1,3 @@
-"use client";
-
 import React, {
   useEffect,
   useState,
@@ -153,10 +151,51 @@ export default function CatalogoMagazinePage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
 
-  // NEW: ref + contador de páginas
+  // Flipbook ref + estado de páginas
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(1);
   const [pagesTotal, setPagesTotal] = useState(1);
+  const [isFirst, setIsFirst] = useState(true);
+  const [isLast, setIsLast] = useState(false);
+
+  const getApi = useCallback(() => {
+    try {
+      return bookRef.current?.pageFlip?.();
+    } catch {
+      return undefined;
+    }
+  }, []);
+
+  const syncBounds = useCallback(() => {
+    const api = getApi();
+    if (!api) return;
+    const idx = api.getCurrentPageIndex?.() ?? 0;
+    const total = api.getPageCount?.() ?? 1;
+    setPage(idx + 1);
+    setPagesTotal(total);
+    setIsFirst(idx <= 0);
+    setIsLast(idx >= total - 1);
+  }, [getApi]);
+
+  const goPrev = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+    e?.stopPropagation?.();
+    const api = getApi();
+    if (!api) return;
+    if ((api.getCurrentPageIndex?.() ?? 0) > 0) {
+      api.flipPrev();
+    }
+  }, [getApi]);
+
+  const goNext = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+    e?.stopPropagation?.();
+    const api = getApi();
+    if (!api) return;
+    const idx = api.getCurrentPageIndex?.() ?? 0;
+    const total = api.getPageCount?.() ?? 1;
+    if (idx < total - 1) {
+      api.flipNext();
+    }
+  }, [getApi]);
 
   useEffect(() => {
     function updateDeviceType() {
@@ -279,7 +318,7 @@ export default function CatalogoMagazinePage() {
     if (h == null) return "—";
     const m = String(h).trim().match(/\d+/);
     return m ? m[0] : String(h);
-    };
+  };
 
   const year = new Date().getFullYear();
   const periodLabelTop = getPeriodLabel(selectedPeriod);
@@ -335,7 +374,7 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Wrapper para gestos + botones */}
+      {/* Wrapper Flipbook */}
       <div className="book-wrap relative overscroll-none touch-pan-y select-none">
         <HTMLFlipBook
           ref={bookRef}
@@ -355,22 +394,18 @@ export default function CatalogoMagazinePage() {
           startPage={0}
           flippingTime={800}
           clickEventForward={false}
-          disableFlipByClick={isMobile} // en móvil navegamos con barra inferior
+          /* En móvil NO deshabilitamos los clics; usamos overlays/btns con z-index */
+          disableFlipByClick={false}
           mobileScrollSupport={isMobile || isTablet}
           swipeDistance={isMobile ? 120 : 50}
           className="shadow-xl z-10"
           useMouseEvents
           showPageCorners
-          onInit={(inst: any) => {
-            try {
-              const api = inst?.pageFlip?.();
-              setPagesTotal(api?.getPageCount?.() ?? 1);
-              setPage((api?.getCurrentPageIndex?.() ?? 0) + 1);
-            } catch {}
+          onInit={() => {
+            syncBounds();
           }}
-          onFlip={(e: any) => {
-            const idx = typeof e?.data === "number" ? e.data : 0;
-            setPage(idx + 1);
+          onFlip={() => {
+            syncBounds();
           }}
         >
           {/* PORTADA */}
@@ -642,51 +677,57 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* Flechas laterales: solo md+ */}
-        <div className="hidden md:block">
-          <button
-            type="button"
-            aria-label="Página anterior"
-            onClick={() => bookRef.current?.pageFlip().flipPrev()}
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border px-3 py-2 text-sm shadow-md bg-white/90 hover:bg-white"
-          >
-            ◀
-          </button>
-          <button
-            type="button"
-            aria-label="Página siguiente"
-            onClick={() => bookRef.current?.pageFlip().flipNext()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border px-3 py-2 text-sm shadow-md bg-white/90 hover:bg-white"
-          >
-            ▶
-          </button>
+        {/* === ZONAS TÁCTILES (móvil) para avanzar/retroceder === */}
+        <div className="md:hidden pointer-events-none">
+          {/* Izquierda */}
+          <div
+            onClick={goPrev}
+            onTouchStart={(e) => { e.stopPropagation(); }}
+            className={`pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isFirst ? "opacity-0" : "opacity-0"}`}
+            aria-hidden
+            title="Página anterior"
+          />
+          {/* Derecha */}
+          <div
+            onClick={goNext}
+            onTouchStart={(e) => { e.stopPropagation(); }}
+            className={`pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[65%] w-[28%] z-40 ${isLast ? "opacity-0" : "opacity-0"}`}
+            aria-hidden
+            title="Página siguiente"
+          />
         </div>
 
-        {/* Barra inferior: solo móvil */}
-        <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-0 z-20 pb-3 pb-[env(safe-area-inset-bottom)]">
-          <div className="pointer-events-auto mx-auto flex w-[min(92%,28rem)] items-center justify-between gap-2 rounded-full bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-            <button
-              type="button"
-              onClick={() => bookRef.current?.pageFlip().flipPrev()}
-              className="rounded-full border px-3 py-2 text-sm bg-white hover:bg-neutral-50 active:scale-95 transition"
-              aria-label="Página anterior"
-            >
-              ◀
-            </button>
+        {/* === BOTONES LATERALES (móvil y escritorio) al centro vertical === */}
+        <button
+          type="button"
+          aria-label="Página anterior"
+          onClick={goPrev}
+          onTouchStart={(e) => { e.stopPropagation(); }}
+          disabled={isFirst}
+          className={`absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isFirst ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          aria-label="Página siguiente"
+          onClick={goNext}
+          onTouchStart={(e) => { e.stopPropagation(); }}
+          disabled={isLast}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isLast ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          ▶
+        </button>
 
-            <span className="text-xs tabular-nums">
-              {page} / {pagesTotal}
-            </span>
-
-            <button
-              type="button"
-              onClick={() => bookRef.current?.pageFlip().flipNext()}
-              className="rounded-full border px-3 py-2 text-sm bg-white hover:bg-neutral-50 active:scale-95 transition"
-              aria-label="Página siguiente"
-            >
-              ▶
-            </button>
-          </div>
+        {/* Contador centrado abajo (opcional) */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-50 flex justify-center">
+          <span className="pointer-events-auto rounded-full bg-white/90 px-3 py-1 text-xs shadow">
+            {page} / {pagesTotal}
+          </span>
         </div>
       </div>
     </main>
