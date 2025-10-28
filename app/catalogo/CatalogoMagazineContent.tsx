@@ -149,6 +149,7 @@ export default function CatalogoMagazinePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
 
   // Flipbook: ref y estado de páginas
   const bookRef = useRef<any>(null);
@@ -176,29 +177,40 @@ export default function CatalogoMagazinePage() {
     setIsLast(idx >= total - 1);
   }, [getApi]);
 
-  const goPrev = useCallback(() => {
+  const goPrev = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
-    if ((api.getCurrentPageIndex?.() ?? 0) > 0) api.flipPrev();
+    if ((api.getCurrentPageIndex?.() ?? 0) > 0) {
+      api.flipPrev();
+      // el onFlip actualizará estados
+    }
   }, [getApi]);
 
-  const goNext = useCallback(() => {
+  const goNext = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation?.();
     const api = getApi();
     if (!api) return;
     const idx = api.getCurrentPageIndex?.() ?? 0;
     const total = api.getPageCount?.() ?? 1;
-    if (idx < total - 1) api.flipNext();
+    if (idx < total - 1) {
+      api.flipNext();
+    }
   }, [getApi]);
 
-  // detectar móvil
+  // detectar dispositivo
   useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth < 768);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    function updateDeviceType() {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
+    }
+    updateDeviceType();
+    window.addEventListener("resize", updateDeviceType);
+    return () => window.removeEventListener("resize", updateDeviceType);
   }, []);
 
-  // navegación por teclado en desktop
+  // navegación por teclado en escritorio
   useEffect(() => {
     if (isMobile) return;
     const onKey = (e: KeyboardEvent) => {
@@ -375,8 +387,8 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Flipbook */}
-      <div className="relative w-full max-w-[1100px] select-none">
+      {/* Wrapper Flipbook */}
+      <div className="book-wrap relative overscroll-none touch-pan-y select-none">
         <HTMLFlipBook
           ref={bookRef}
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
@@ -393,18 +405,23 @@ export default function CatalogoMagazinePage() {
           maxShadowOpacity={0.5}
           drawShadow
           startPage={0}
-          // 👉 sensibilidad: en móvil solo botones; en desktop gestos OK
-          disableFlipByClick={isMobile}
-          useMouseEvents={!isMobile}
-          swipeDistance={isMobile ? 999 : 50}
+          /* 👇 Comportamiento condicional por dispositivo */
+          disableFlipByClick={isMobile}        // en móvil NO click para pasar página
+          useMouseEvents={!isMobile}           // en desktop permitir drag/click
+          swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
           clickEventForward={false}
           mobileScrollSupport={true}
           className="shadow-xl z-10"
           showPageCorners
           onInit={(inst: any) => {
-            try { syncFromApi(inst?.pageFlip?.()); } catch {}
+            try {
+              const api = inst?.pageFlip?.();
+              syncFromApi(api);
+            } catch {}
           }}
-          onFlip={() => { syncFromApi(); }}
+          onFlip={() => {
+            syncFromApi();
+          }}
         >
           {/* PORTADA */}
           {(() => {
@@ -675,33 +692,53 @@ export default function CatalogoMagazinePage() {
           })}
         </HTMLFlipBook>
 
-        {/* === BARRA INFERIOR (SOLO MÓVIL) === */}
-        <div className="md:hidden w-full">
-          <div className="mx-auto mt-3 w-[min(92%,28rem)]">
-            <div className="flex items-center justify-between gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-              <Button
-                radius="full"
-                size="sm"
-                variant="flat"
-                onPress={goPrev}
-                isDisabled={isFirst}
-              >
-                ← Atrás
-              </Button>
-              <span className="text-xs tabular-nums">
-                {page} / {pagesTotal}
-              </span>
-              <Button
-                radius="full"
-                size="sm"
-                variant="flat"
-                onPress={goNext}
-                isDisabled={isLast}
-              >
-                Siguiente →
-              </Button>
-            </div>
-          </div>
+        {/* === ZONAS TÁCTILES (solo móvil) === */}
+        <div className="md:hidden pointer-events-none">
+          {/* Izquierda */}
+          <div
+            onClick={goPrev}
+            className="pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[60%] w-[24%] z-40"
+            aria-hidden
+            title="Página anterior"
+          />
+          {/* Derecha */}
+          <div
+            onClick={goNext}
+            className="pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[60%] w-[24%] z-40"
+            aria-hidden
+            title="Página siguiente"
+          />
+        </div>
+
+        {/* === BOTONES VISIBLES (solo móvil) === */}
+        <button
+          type="button"
+          aria-label="Página anterior"
+          onClick={goPrev}
+          disabled={isFirst}
+          className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isFirst ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          aria-label="Página siguiente"
+          onClick={goNext}
+          disabled={isLast}
+          className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isLast ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          ▶
+        </button>
+
+        {/* Contador (solo móvil) */}
+        <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-2 z-50 flex justify-center">
+          <span className="pointer-events-auto rounded-full bg-white/90 px-3 py-1 text-xs shadow">
+            {page} / {pagesTotal}
+          </span>
         </div>
       </div>
     </main>
