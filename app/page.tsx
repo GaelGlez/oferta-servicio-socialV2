@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@nextui-org/react";
-import { Calendar, Leaf, Snowflake, Sun } from "lucide-react";
+import { Calendar, Snowflake } from "lucide-react";
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 
@@ -18,15 +17,14 @@ const periodOptions: Array<{
   label2?: string;
   value: PeriodKey;
   hours: number[];
-  variant: "green" | "orange"; // ampliamos variantes
+  variant: "green" | "orange"; // usamos estas 2 variantes
   icon: "snowflake" | "calendar";
 }> = [
   {
-    label: "Invierno",
-    label2: undefined,
+    label: "INVierno", // si quieres en mayúsculas, puedes dejar "INVIERNO"
     value: "invierno",
     hours: [60, 100, 200],
-    variant: "green",  // azul invernal
+    variant: "green",
     icon: "snowflake",
   },
   {
@@ -34,26 +32,21 @@ const periodOptions: Array<{
     label2: "JUNIO",
     value: "feb-jun",
     hours: [60, 120, 180],
-    variant: "orange", // tonos morados
+    variant: "orange",
     icon: "calendar",
   },
 ];
 
-
-
-// Gradientes extendidos para Tailwind
-const gradientByVariant: Record<"green" | "orange" | "blue" | "purple", string> = {
+// Gradientes por variante (coinciden con las claves anteriores)
+const gradientByVariant: Record<"green" | "orange", string> = {
   green: "bg-gradient-to-br from-lime-200 via-lime-300 to-lime-500",
   orange: "bg-gradient-to-br from-orange-200 via-orange-300 to-orange-500",
-  blue: "bg-gradient-to-br from-blue-200 via-blue-400 to-blue-600",      // Invierno
-  purple: "bg-gradient-to-br from-purple-200 via-purple-300 to-purple-500", // Feb-Jun
 };
-
 
 function PeriodCard({
   titleTop,
   titleBottom,
-  hrefHoursParam, // p.ej. "invierno"
+  hrefHoursParam,
   hours,
   variant,
   icon,
@@ -62,31 +55,31 @@ function PeriodCard({
   titleBottom?: string;
   hrefHoursParam: PeriodKey;
   hours: number[];
-  variant: "blue" | "purple";
+  variant: "green" | "orange"; // <- corregido
   icon: "snowflake" | "calendar";
 }) {
   const router = useRouter();
 
   return (
     <div
-      className={`
+      className="
         relative m-6 w-full sm:w-[460px] aspect-[1/1]
         rounded-xl border border-neutral-300
         shadow-[0_6px_24px_rgba(0,0,0,.08)] overflow-hidden
-      `}
+      "
     >
       {/* Fondo degradado */}
       <div className={`absolute inset-0 ${gradientByVariant[variant]}`} />
 
       {/* Contenido */}
       <div className="relative z-10 flex h-full flex-col items-center justify-between p-6">
-        {/* Títulos */}
-        <div className="mt-2 text-center">
-          <p className="text-xl md:text-2xl font-extrabold tracking-widest">
+        {/* Títulos: mismos estilos para ambos renglones */}
+        <div className="mt-2 text-center leading-tight">
+          <p className="text-2xl md:text-3xl font-extrabold uppercase tracking-widest">
             {titleTop}
           </p>
           {titleBottom && (
-            <p className="text-lg md:text-xl -mt-1 font-extrabold tracking-widest">
+            <p className="text-2xl md:text-3xl font-extrabold uppercase tracking-widest -mt-1">
               {titleBottom}
             </p>
           )}
@@ -138,7 +131,7 @@ function PageContent() {
             titleBottom={p.label2}
             hrefHoursParam={p.value}
             hours={p.hours}
-            variant={p.variant}
+            variant={p.variant}   // ahora coincide con el tipo
             icon={p.icon}
           />
         ))}
