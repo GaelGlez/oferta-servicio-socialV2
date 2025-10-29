@@ -1,74 +1,140 @@
-"use client"
+"use client";
 
 import { Button } from "@nextui-org/react";
-import { LeafyGreen, Sun } from "lucide-react";
+import { Leaf, Sun } from "lucide-react";
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 
-const periodOptions = [
+/*
+Valores posibles de period:
+"verano" | "ago-dic" | "invierno" | "feb-jun"
+*/
+
+type PeriodKey = "invierno" | "feb-jun";
+
+const periodOptions: Array<{
+  label: string;
+  label2?: string;
+  value: PeriodKey;
+  hours: number[];
+  variant: "green" | "orange";
+  icon: "sun" | "leaf";
+}> = [
   {
-    label: "PERIODO INTENSIVO",
-    label2: "Invierno",
-    value: "invierno",
+    label: "VERANO",
+    label2: undefined,
+    value: "invierno", // ajusta si tu query difiere
     hours: [60, 100, 200],
-    colorFrom: "lime-200",
-    colorTo: "lime-500",
-    icon: <Sun className="size-32" />,
+    variant: "green",
+    icon: "sun",
   },
   {
-    label: "PERIODO SEMESTRAL",
-    label2: "Febrero - Junio",
-    value: "feb-jun",
+    label: "AGOSTO",
+    label2: "DICIEMBRE",
+    value: "feb-jun", // ajusta si tu query difiere
     hours: [60, 120, 180],
-    colorFrom: "orange-200",
-    colorTo: "orange-500",
-    icon: <LeafyGreen className="size-32" />,
+    variant: "orange",
+    icon: "leaf",
   },
 ];
 
-/* 
-Opciones de value
-"verano"
-"ago-dic"
-"invierno"
-"feb-jun"
-*/
+// Gradientes fijos para Tailwind (evita clases dinámicas)
+const gradientByVariant: Record<"green" | "orange", string> = {
+  green: "bg-gradient-to-br from-lime-200 via-lime-300 to-lime-500",
+  orange: "bg-gradient-to-br from-orange-200 via-orange-300 to-orange-500",
+};
 
-function PageContent() {
+function PeriodCard({
+  titleTop,
+  titleBottom,
+  hrefHoursParam, // p.ej. "invierno"
+  hours,
+  variant,
+  icon,
+}: {
+  titleTop: string;
+  titleBottom?: string;
+  hrefHoursParam: PeriodKey;
+  hours: number[];
+  variant: "green" | "orange";
+  icon: "sun" | "leaf";
+}) {
   const router = useRouter();
 
-    return (
-    <main className="flex min-h-screen flex-col px-4 lg:px-20 py-10 items-center">
-      <h1 className="text-5xl font-bold py-5">Ofertas Servicio Social</h1>
-      <div className="flex flex-col md:flex-row md:space-x-10">
-        {periodOptions.map((period) => (
-          <div
-            key={period.value}
-            className={`m-10 p-4 size-80 lg:size-96 rounded border-black border-2 bg-gradient-to-br from-${period.colorFrom} to-${period.colorTo}`}
-          >
-            <div className="flex flex-col items-center h-full justify-between">
-              <div className="flex flex-col items-center gap-0.3">
-                <h2 className="text-2xl font-mono font-bold text-center">{period.label}</h2>
-                <h2 className="text-xl font-mono font-semibold">{period.label2}</h2>
-              </div>
-              {period.icon}
-              <div className="flex flex-row gap-2 mt-4">
-                {period.hours.map((h) => (
-                  <Button
-                    key={h}
-                    color="primary"
-                    radius="full"
-                    size="sm"
-                    onClick={() =>
-                      router.push(`/catalogo?hours=Hasta+${h}&period=${period.value}`)
-                    }
-                  >
-                    {h} hrs
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+  return (
+    <div
+      className={`
+        relative m-6 w-full sm:w-[460px] aspect-[1/1]
+        rounded-xl border border-neutral-300
+        shadow-[0_6px_24px_rgba(0,0,0,.08)] overflow-hidden
+      `}
+    >
+      {/* Fondo degradado */}
+      <div className={`absolute inset-0 ${gradientByVariant[variant]}`} />
+
+      {/* Contenido */}
+      <div className="relative z-10 flex h-full flex-col items-center justify-between p-6">
+        {/* Títulos */}
+        <div className="mt-2 text-center">
+          <p className="text-xl md:text-2xl font-extrabold tracking-widest">
+            {titleTop}
+          </p>
+          {titleBottom && (
+            <p className="text-lg md:text-xl -mt-1 font-extrabold tracking-widest">
+              {titleBottom}
+            </p>
+          )}
+        </div>
+
+        {/* Ícono */}
+        <div className="flex items-center justify-center">
+          {icon === "sun" ? (
+            <Sun className="h-28 w-28 opacity-80" />
+          ) : (
+            <Leaf className="h-28 w-28 opacity-80" />
+          )}
+        </div>
+
+        {/* Botones “pastilla” oscuros */}
+        <div className="mb-2 flex items-center gap-2">
+          {hours.map((h) => (
+            <button
+              key={h}
+              onClick={() =>
+                router.push(`/catalogo?hours=Hasta+${h}&period=${hrefHoursParam}`)
+              }
+              className="
+                rounded-full bg-neutral-900 px-4 py-1.5 text-white text-sm
+                shadow-md transition-colors hover:bg-black
+              "
+            >
+              {h} hrs
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PageContent() {
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-10">
+      <h1 className="mb-10 text-center text-4xl md:text-6xl font-extrabold">
+        Ofertas Servicio Social
+      </h1>
+
+      <div className="grid grid-cols-1 place-items-center gap-6 md:grid-cols-2">
+        {periodOptions.map((p) => (
+          <PeriodCard
+            key={p.value}
+            titleTop={p.label}
+            titleBottom={p.label2}
+            hrefHoursParam={p.value}
+            hours={p.hours}
+            variant={p.variant}
+            icon={p.icon}
+          />
         ))}
       </div>
     </main>
