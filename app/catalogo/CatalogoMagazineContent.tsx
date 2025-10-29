@@ -194,6 +194,7 @@ export default function CatalogoMagazinePage() {
       if (typeof api.turnToPage === "function") {
         api.turnToPage(target);
       } else {
+        // fallback por si la API cambia
         if (dir === "prev" && idx > 0) api.flipPrev?.();
         if (dir === "next" && idx < total - 1) api.flipNext?.();
       }
@@ -327,7 +328,7 @@ export default function CatalogoMagazinePage() {
   const tagOptions = useMemo(
     () =>
       Array.from(
-        new Set(projects.flatMap((p) => p.tags.map((tag) => t.name)))
+        new Set(projects.flatMap((p) => p.tags.map((tag) => tag.name)))
       ).map((tag) => ({ label: tag, value: tag })),
     [projects]
   );
@@ -410,336 +411,358 @@ export default function CatalogoMagazinePage() {
         </div>
       </div>
 
-      {/* Flipbook + barra inferior móvil */}
-      <div className="w-full max-w-[1100px] select-none">
-        <div className="relative">
-          <HTMLFlipBook
-            ref={bookRef}
-            key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
-            size="stretch"
-            autoSize
-            width={1100}
-            height={1558}
-            minWidth={480}
-            maxWidth={1600}
-            minHeight={680}
-            maxHeight={2200}
-            showCover
-            usePortrait
-            maxShadowOpacity={0.5}
-            drawShadow
-            startPage={0}
-            /* móvil: solo barra inferior; desktop: drag/click */
-            disableFlipByClick={isMobile}
-            useMouseEvents={!isMobile}
-            swipeDistance={isMobile ? 999 : 50}
-            clickEventForward={false}
-            mobileScrollSupport
-            className="shadow-xl z-10"
-            showPageCorners
-            onInit={(inst: any) => {
-              try {
-                const api = inst?.pageFlip?.();
-                syncFromApi(api);
-              } catch {}
-            }}
-            onFlip={() => syncFromApi()}
-          >
-            {/* PORTADA */}
-            {(() => {
-              const totalProjects = filteredProjects.length;
-              const careersCount = new Set(
-                filteredProjects.flatMap((p) => (p.tags || []).map((t) => t.name))
-              ).size;
-              const onlineCount = filteredProjects.filter((p) =>
-                isOnline(p.model)
-              ).length;
-              const presencialCount = totalProjects - onlineCount;
+      {/* Wrapper Flipbook */}
+      <div className="book-wrap relative overscroll-none touch-pan-y select-none">
+        <HTMLFlipBook
+          ref={bookRef}
+          key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
+          size="stretch"
+          autoSize
+          width={1100}
+          height={1558}
+          minWidth={480}
+          maxWidth={1600}
+          minHeight={680}
+          maxHeight={2200}
+          showCover
+          usePortrait
+          maxShadowOpacity={0.5}
+          drawShadow
+          startPage={0}
+          /* 👇 Comportamiento condicional por dispositivo */
+          disableFlipByClick={isMobile}        // en móvil NO click para pasar página
+          useMouseEvents={!isMobile}           // en desktop permitir drag/click
+          swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
+          clickEventForward={false}
+          mobileScrollSupport={true}
+          className="shadow-xl z-10"
+          showPageCorners
+          onInit={(inst: any) => {
+            try {
+              const api = inst?.pageFlip?.();
+              syncFromApi(api);
+            } catch {}
+          }}
+          onFlip={() => {
+            syncFromApi();
+          }}
+        >
+          {/* PORTADA */}
+          {(() => {
+            const totalProjects = filteredProjects.length;
+            const careersCount = new Set(
+              filteredProjects.flatMap((p) => (p.tags || []).map((t) => t.name))
+            ).size;
+            const onlineCount = filteredProjects.filter((p) =>
+              isOnline(p.model)
+            ).length;
+            const presencialCount = totalProjects - onlineCount;
 
-              return (
-                <div key="cover" className="page hard cover-page" data-density="hard">
-                  <CoverPage
-                    title="Catálogo de Proyectos"
-                    subtitle="Revista de Servicio Social"
-                    periodLabel={periodLabelTop}
-                    year={year}
-                    totalProjects={totalProjects}
-                    careersCount={careersCount}
-                    onlineCount={onlineCount}
-                    presencialCount={presencialCount}
-                  />
-                </div>
-              );
-            })()}
+            return (
+              <div key="cover" className="page hard cover-page" data-density="hard">
+                <CoverPage
+                  title="Catálogo de Proyectos"
+                  subtitle="Revista de Servicio Social"
+                  periodLabel={periodLabelTop}
+                  year={year}
+                  totalProjects={totalProjects}
+                  careersCount={careersCount}
+                  onlineCount={onlineCount}
+                  presencialCount={presencialCount}
+                />
+              </div>
+            );
+          })()}
 
-            {/* PÁGINAS */}
-            {filteredProjects.map((project) => {
-              const periodLabel = getPeriodLabel(project?.period);
-              const hoursText = project?.hours ? `${project.hours} horas` : "—";
-              const activities = (project?.description || "")
-                .split("\n")
-                .map((s) => s.trim())
-                .filter(Boolean);
-              const abilitiesText = (() => {
-                const raw =
-                  (project as any)?.abilities ?? (project as any)?.skills ?? "";
-                return Array.isArray(raw)
-                  ? raw.filter(Boolean).join(", ")
-                  : String(raw || "").trim();
-              })();
+          {/* PÁGINAS */}
+          {filteredProjects.map((project) => {
+            const periodLabel = getPeriodLabel(project?.period);
+            const hoursText = project?.hours ? `${project.hours} horas` : "—";
+            const activities = (project?.description || "")
+              .split("\n")
+              .map((s) => s.trim())
+              .filter(Boolean);
+            const abilitiesText = (() => {
+              const raw =
+                (project as any)?.abilities ?? (project as any)?.skills ?? "";
+              return Array.isArray(raw)
+                ? raw.filter(Boolean).join(", ")
+                : String(raw || "").trim();
+            })();
 
-              return (
-                <div key={project.id} className="page">
-                  <article className="sheet">
-                    <header className="masthead">
-                      <div className="fav" onClick={(e) => e.stopPropagation()}>
-                        <FavoriteButton id={project.id.toString()} />
-                      </div>
-                      <div className="chips top" aria-hidden="true">
-                        <span className="tag">{project?.model || "Modalidad"}</span>
-                      </div>
+            return (
+              <div key={project.id} className="page">
+                <article className="sheet">
+                  <header className="masthead">
+                    <div className="fav" onClick={(e) => e.stopPropagation()}>
+                      <FavoriteButton id={project.id.toString()} />
+                    </div>
+                    <div className="chips top" aria-hidden="true">
+                      <span className="tag">{project?.model || "Modalidad"}</span>
+                    </div>
 
-                      <h1 className="title clamp-2">{project?.title}</h1>
+                    <h1 className="title clamp-2">{project?.title}</h1>
 
-                      <div
-                        className="byline"
-                        title={project?.organization || "Organización"}
-                      >
-                        <span className="org-name">
-                          {project?.organization || "Organización"}
+                    <div
+                      className="byline"
+                      title={project?.organization || "Organización"}
+                    >
+                      <span className="org-name">
+                        {project?.organization || "Organización"}
+                      </span>
+                      {periodLabel && <span className="sep">·</span>}
+                    </div>
+
+                    <div className="chips bottom" role="list">
+                      {project?.tags?.slice(0, 3).map((t, i) => (
+                        <span
+                          className="chip"
+                          key={`tag-${project.id}-${i}`}
+                          role="listitem"
+                          title={t.name}
+                        >
+                          <i className="c1" />
+                          {t.name}
                         </span>
-                        {periodLabel && <span className="sep">·</span>}
+                      ))}
+                    </div>
+                  </header>
+
+                  <section className="content no-scroll">
+                    <div>
+                      <p className="kicker">Objetivo del proyecto</p>
+                      <p className="lead clamp-4">{project?.objective || "—"}</p>
+
+                      <div className="card">
+                        <h3>Actividades a realizar</h3>
+                        {activities.length ? (
+                          <ul className="list list-clamped">
+                            {activities.map(
+                              (line, i) => line && (
+                                <li className="clamp-1" key={i}>
+                                  {line}
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        ) : (
+                          <p className="lead" style={{ margin: 0 }}>
+                            —
+                          </p>
+                        )}
                       </div>
 
-                      <div className="chips bottom" role="list">
-                        {project?.tags?.slice(0, 3).map((t, i) => (
-                          <span
-                            className="chip"
-                            key={`tag-${project.id}-${i}`}
-                            role="listitem"
-                            title={t.name}
-                          >
-                            <i className="c1" />
-                            {t.name}
-                          </span>
-                        ))}
-                      </div>
-                    </header>
-
-                    <section className="content no-scroll">
-                      <div>
-                        <p className="kicker">Objetivo del proyecto</p>
-                        <p className="lead clamp-4">{project?.objective || "—"}</p>
-
+                      {project?.population && (
                         <div className="card">
-                          <h3>Actividades a realizar</h3>
-                          {activities.length ? (
-                            <ul className="list list-clamped">
-                              {activities.map(
-                                (line, i) => line && (
-                                  <li className="clamp-1" key={i}>
-                                    {line}
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          ) : (
-                            <p className="lead" style={{ margin: 0 }}>
-                              —
-                            </p>
-                          )}
-                        </div>
-
-                        {project?.population && (
-                          <div className="card">
-                            <div className="meta">
-                              <span
-                                className="dot"
-                                style={{ background: "var(--color-4)" }}
-                              />
-                              <div>
-                                <h3>Población que atiende</h3>
-                                <p className="lead clamp-2" style={{ margin: 0 }}>
-                                  {project?.population}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {abilitiesText && (
-                          <div className="card">
-                            <div className="meta">
-                              <span
-                                className="dot"
-                                style={{
-                                  background: "var(--color-4)",
-                                  boxShadow: "0 0 0 3px rgba(254,52,102,.16)",
-                                }}
-                              />
-                              <div>
-                                <h3>Competencias requeridas</h3>
-                                <p className="lead clamp-3" style={{ margin: 0 }}>
-                                  {abilitiesText}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {project?.quota !== undefined &&
-                          project?.quota !== null &&
-                          String(project.quota).trim() !== "" && (
-                            <div className="card">
-                              <div className="meta">
-                                <span
-                                  className="dot"
-                                  style={{
-                                    background: "var(--color-5)",
-                                    boxShadow: "0 0 0 3px rgba(254,205,51,.18)",
-                                  }}
-                                />
-                                <div>
-                                  <h3>Cupo</h3>
-                                  <p className="lead" style={{ margin: 0 }}>
-                                    <b>{project.quota}</b> estudiantes
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                      </div>
-
-                      <aside className="aside-col">
-                        {project?.image && (
-                          <figure className="org-media org-media--aside">
-                            <Image
-                              as={NextImage}
-                              isBlurred
-                              removeWrapper
-                              alt={project?.title || "Imagen del proyecto"}
-                              className="z-0 object-contain org-img"
-                              src={
-                                supabase.storage
-                                  .from("ServicioSocialProjectImages")
-                                  .getPublicUrl(project?.image).data.publicUrl
-                              }
-                              width={800}
-                              height={480}
+                          <div className="meta">
+                            <span
+                              className="dot"
+                              style={{ background: "var(--color-4)" }}
                             />
-                          </figure>
-                        )}
+                            <div>
+                              <h3>Población que atiende</h3>
+                              <p className="lead clamp-2" style={{ margin: 0 }}>
+                                {project?.population}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-                        {project?.location && (
+                      {abilitiesText && (
+                        <div className="card">
+                          <div className="meta">
+                            <span
+                              className="dot"
+                              style={{
+                                background: "var(--color-4)",
+                                boxShadow: "0 0 0 3px rgba(254,52,102,.16)",
+                              }}
+                            />
+                            <div>
+                              <h3>Competencias requeridas</h3>
+                              <p className="lead clamp-3" style={{ margin: 0 }}>
+                                {abilitiesText}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {project?.quota !== undefined &&
+                        project?.quota !== null &&
+                        String(project.quota).trim() !== "" && (
                           <div className="card">
                             <div className="meta">
                               <span
                                 className="dot"
                                 style={{
-                                  background: "var(--color-4)",
-                                  boxShadow: "0 0 0 3px rgba(254,52,102,.16)",
+                                  background: "var(--color-5)",
+                                  boxShadow: "0 0 0 3px rgba(254,205,51,.18)",
                                 }}
                               />
                               <div>
-                                <h3>Ubicación</h3>
-                                <p className="lead clamp-2" style={{ margin: 0 }}>
-                                  {project?.location}
+                                <h3>Cupo</h3>
+                                <p className="lead" style={{ margin: 0 }}>
+                                  <b>{project.quota}</b> estudiantes
                                 </p>
                               </div>
                             </div>
                           </div>
                         )}
+                    </div>
 
-                        {project?.schedule && (
-                          <div className="card">
-                            <div className="meta">
-                              <span className="dot" aria-hidden="true"></span>
-                              <div>
-                                <h3>Horario</h3>
-                                <p className="lead clamp-2" style={{ margin: 0 }}>
-                                  {project?.schedule}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                    <aside className="aside-col">
+                      {project?.image && (
+                        <figure className="org-media org-media--aside">
+                          <Image
+                            as={NextImage}
+                            isBlurred
+                            removeWrapper
+                            alt={project?.title || "Imagen del proyecto"}
+                            className="z-0 object-contain org-img"
+                            src={
+                              supabase.storage
+                                .from("ServicioSocialProjectImages")
+                                .getPublicUrl(project?.image).data.publicUrl
+                            }
+                            width={800}
+                            height={480}
+                          />
+                        </figure>
+                      )}
 
+                      {project?.location && (
                         <div className="card">
                           <div className="meta">
-                            <span className="dot" style={{ background: "var(--color-5)" }} />
+                            <span
+                              className="dot"
+                              style={{
+                                background: "var(--color-4)",
+                                boxShadow: "0 0 0 3px rgba(254,52,102,.16)",
+                              }}
+                            />
                             <div>
-                              <h3>Horas máximas a acreditar</h3>
-                              <p className="lead" style={{ margin: 0 }}>
-                                Hasta <b>{normalizeHours(project?.hours)}</b>
+                              <h3>Ubicación</h3>
+                              <p className="lead clamp-2" style={{ margin: 0 }}>
+                                {project?.location}
                               </p>
                             </div>
                           </div>
                         </div>
+                      )}
 
+                      {project?.schedule && (
                         <div className="card">
                           <div className="meta">
-                            <span className="dot"></span>
+                            <span className="dot" aria-hidden="true"></span>
                             <div>
-                              <h3>Duración</h3>
-                              <p className="lead" style={{ margin: 0 }}>
-                                {project?.duration || `Hasta ${hoursText}`}
+                              <h3>Horario</h3>
+                              <p className="lead clamp-2" style={{ margin: 0 }}>
+                                {project?.schedule}
                               </p>
                             </div>
                           </div>
                         </div>
-                      </aside>
-                    </section>
+                      )}
 
-                    <footer className="page-footer">
-                      <div className="footer-row" role="list">
-                        <span className="footer-label">Grupo:</span>
-                        <span className="footer-value">
-                          {(project?.group ?? "").toString().trim() || "—"}
-                        </span>
-                        <span className="footer-label">Clave:</span>
-                        <span className="footer-value">
-                          {(
-                            ((project as any)?.groupKey ??
-                              (project as any)?.group_key ??
-                              "") as string
-                          )
-                            .toString()
-                            .trim() || "—"}
-                        </span>
+                      <div className="card">
+                        <div className="meta">
+                          <span className="dot" style={{ background: "var(--color-5)" }} />
+                          <div>
+                            <h3>Horas máximas a acreditar</h3>
+                            <p className="lead" style={{ margin: 0 }}>
+                              Hasta <b>{normalizeHours(project?.hours)}</b>
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </footer>
-                  </article>
-                </div>
-              );
-            })}
-          </HTMLFlipBook>
+
+                      <div className="card">
+                        <div className="meta">
+                          <span className="dot"></span>
+                          <div>
+                            <h3>Duración</h3>
+                            <p className="lead" style={{ margin: 0 }}>
+                              {project?.duration || `Hasta ${hoursText}`}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </aside>
+                  </section>
+
+                  <footer className="page-footer">
+                    <div className="footer-row" role="list">
+                      <span className="footer-label">Grupo:</span>
+                      <span className="footer-value">
+                        {(project?.group ?? "").toString().trim() || "—"}
+                      </span>
+                      <span className="footer-label">Clave:</span>
+                      <span className="footer-value">
+                        {(
+                          ((project as any)?.groupKey ??
+                            (project as any)?.group_key ??
+                            "") as string
+                        )
+                          .toString()
+                          .trim() || "—"}
+                      </span>
+                    </div>
+                  </footer>
+                </article>
+              </div>
+            );
+          })}
+        </HTMLFlipBook>
+
+        {/* === ZONAS TÁCTILES (solo móvil) === */}
+        <div className="md:hidden pointer-events-none">
+          {/* Izquierda */}
+          <div
+            onClick={(e) => goPrev(e)}
+            className="pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[60%] w-[22%] z-30"
+            aria-hidden
+            title="Página anterior"
+          />
+          {/* Derecha */}
+          <div
+            onClick={(e) => goNext(e)}
+            className="pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[60%] w-[22%] z-30"
+            aria-hidden
+            title="Página siguiente"
+          />
         </div>
 
-        {/* === BARRA INFERIOR (SOLO MÓVIL, debajo de la revista) === */}
-        <div className="md:hidden mx-auto mt-3 w-[min(92%,28rem)]">
-          <div className="flex items-center justify-between gap-2 rounded-xl border bg-white/95 px-3 py-2 shadow-lg backdrop-blur">
-            <Button
-              radius="full"
-              size="sm"
-              variant="flat"
-              onPress={(e) => goPrev(e as any)}
-              isDisabled={isFirst}
-            >
-              ← Atrás
-            </Button>
-            <span className="text-xs tabular-nums">
-              {page} / {pagesTotal}
-            </span>
-            <Button
-              radius="full"
-              size="sm"
-              variant="flat"
-              onPress={(e) => goNext(e as any)}
-              isDisabled={isLast}
-            >
-              Siguiente →
-            </Button>
-          </div>
+        {/* === BOTONES VISIBLES (solo móvil) === */}
+        <button
+          type="button"
+          aria-label="Página anterior"
+          onClick={(e) => goPrev(e)}
+          disabled={isFirst}
+          className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isFirst ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          aria-label="Página siguiente"
+          onClick={(e) => goNext(e)}
+          disabled={isLast}
+          className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
+            isLast ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          ▶
+        </button>
+
+        {/* Contador (solo móvil) */}
+        <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-2 z-50 flex justify-center">
+          <span className="pointer-events-auto rounded-full bg-white/90 px-3 py-1 text-xs shadow">
+            {page} / {pagesTotal}
+          </span>
         </div>
       </div>
     </main>
