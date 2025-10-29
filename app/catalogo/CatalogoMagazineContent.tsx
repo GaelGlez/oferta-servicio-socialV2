@@ -406,12 +406,12 @@ export default function CatalogoMagazinePage() {
 
           /* ===== Tamaño/control por dispositivo ===== */
           size={isMobile ? "stretch" : "fixed"}
-          autoSize={!isMobile ? false : true}
-          width={isMobile ? 800 : 600}
-          height={isMobile ? 1250 : 1000}
+          autoSize={isMobile}                   // Desktop: respeta medidas fijas
+          width={isMobile ? 800 : 1200}         // ancho grande para escritorio
+          height={isMobile ? 1250 : 1200}       // recortado en desktop
           minWidth={isMobile ? 320 : 960}
           maxWidth={isMobile ? 1600 : 1400}
-          minHeight={isMobile ? 520 : 800}
+          minHeight={isMobile ? 520 : 900}
           maxHeight={isMobile ? 1600 : 1400}
 
           showCover
