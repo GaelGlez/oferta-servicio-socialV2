@@ -695,6 +695,26 @@ export default function CatalogoMagazinePage() {
                           </div>
                         </div>
                       </div>
+
+                      {project?.period && (
+                        <div className="card">
+                          <div className="meta">
+                            <span
+                              className="dot"
+                              style={{
+                                background: "var(--color-4)",
+                                boxShadow: "0 0 0 3px rgba(254,52,102,.16)",
+                              }}
+                            />
+                            <div>
+                              <h3>Periodo</h3>
+                              <p className="lead clamp-2" style={{ margin: 0 }}>
+                                {project?.period}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </aside>
                   </section>
 
