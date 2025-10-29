@@ -583,43 +583,81 @@
   }
 }
 
-/* === Overrides: contenedor del "model" con color propio y tipografía mayor === */
+/* === Cambios de color y tamaño para lo subrayado (chips + "OBJETIVO DEL PROYECTO") === */
 @layer base {
   :root {
-    /* Color de fondo del contenedor de model (ajústalo a gusto) */
-    --model-bg: #eef9ff;        /* azul muy claro */
-    --model-text: #1f2a37;      /* texto oscuro legible */
-    --model-border: #b9e3ff;    /* borde suave */
+    /* Colores propuestos de alto contraste */
+    --chip-bg: #ffffff;        /* fondo de cada chip */
+    --chip-text: #6A1B9A;      /* texto/borde del chip (morado profundo) */
+    --chip-border: #6A1B9A;
+
+    --chips-band-bg: #fffaf2;  /* franja contenedora de chips (ligero marfil) */
+    --chips-band-text: #1f1f1f;
+
+    --kicker-color: #B9008A;   /* color del subtítulo "OBJETIVO DEL PROYECTO" */
   }
 
-  /* Soporta .model, #model o data-block="model" sin cambiar tu HTML */
-  .masthead :is(.model, #model, [data-block="model"]) {
-    background: var(--model-bg);
-    color: var(--model-text);
-    border: 1px solid var(--model-border);
-    border-radius: 14px;
-    padding: 10px 12px;
+  /* Contenedor de chips dentro del header (banda distinta al degradado) */
+  .masthead .chips {
+    background: var(--chips-band-bg);
+    color: var(--chips-band-text);
+    border: 1px solid hsl(var(--border));
+    padding: 8px 12px;           /* ↑ tamaño visual de la banda */
+    border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,.06);
   }
 
-  /* Tipografía un poco más grande SOLO dentro de model */
-  .masthead :is(.model, #model, [data-block="model"]) {
-    font-size: clamp(0.92rem, 0.95rem + 0.2vw, 1.05rem);
+  /* Márgenes existentes */
+  .chips.top { margin-bottom: 10px; }
+  .chips.bottom { margin-top: 10px; row-gap: 8px; }
+
+  /* Cada chip / tag: color y tamaño */
+  .masthead .chip,
+  .masthead .tag {
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    border: 1px solid var(--chip-border);
+    font-weight: 700;
+
+    /* ↑ tamaño */
+    font-size: 0.98rem;          /* antes ~0.82–0.85rem */
     line-height: 1.2;
+    padding: 8px 14px;           /* más “corpus” a la pastilla */
+    backdrop-filter: none;       /* evita blur lechoso */
+  }
+  .masthead .chip i { background: var(--chip-text); }
+
+  /* “OBJETIVO DEL PROYECTO” (kicker): color y tamaño mayores */
+  .kicker {
+    color: var(--kicker-color);
+    font-size: 0.9rem;           /* antes .78rem */
+    letter-spacing: .14em;       /* un pelín más de tracking */
   }
 
-  /* Si dentro de model hay títulos pequeños o etiquetas, súbelos tantito */
-  .masthead :is(.model, #model, [data-block="model"]) .title,
-  .masthead :is(.model, #model, [data-block="model"]) .kicker,
-  .masthead :is(.model, #model, [data-block="model"]) .byline {
-    font-size: clamp(0.95rem, 1rem + 0.2vw, 1.12rem);
+  /* Responsive: en móviles, que sigan viéndose grandes y no rompan layout */
+  @media (max-width: 600px) {
+    .masthead .chips {
+      padding: 6px 10px;
+    }
+    .masthead .chip,
+    .masthead .tag {
+      font-size: 0.95rem;
+      padding: 7px 12px;
+    }
+    .kicker { font-size: 0.88rem; }
   }
 
-  /* Modo oscuro: mantener legibilidad sin chocar con el header */
-  .dark .masthead :is(.model, #model, [data-block="model"]) {
-    background: rgba(255,255,255,0.10);
+  /* Modo oscuro (si usas .dark en <html>) */
+  .dark .masthead .chips {
+    background: rgba(255,255,255,.10);
     color: #fff;
-    border-color: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,.25);
     box-shadow: none;
+  }
+  .dark .masthead .chip,
+  .dark .masthead .tag {
+    background: rgba(255,255,255,.14);
+    color: #fff;
+    border-color: rgba(255,255,255,.45);
   }
 }
