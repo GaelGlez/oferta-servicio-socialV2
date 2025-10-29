@@ -533,8 +533,21 @@
     }
   }
 
+  /* Desktop scroll */
   .desktop-scroll .page {
-    overflow-y: auto;
+    overflow-y: auto;      /* permite scroll vertical */
+    height: 100%;          /* ocupa todo el contenedor flipbook */
+    padding-right: 1rem;   /* para que la scrollbar no tape contenido */
+  }
+
+  .desktop-scroll .page > .sheet {
+    display: block;        /* grid/ flex problemático */
+    height: auto;          /* permite que crezca según contenido */
+  }
+
+  .desktop-scroll .content.no-scroll {
+    display: block;        /* para que aside + cards no se recorten */
+    overflow: visible;
   }
 
   /* Para desktop, permitir scroll dentro de la página */
