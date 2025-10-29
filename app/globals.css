@@ -34,7 +34,15 @@
     --ring: 240 10% 3.9%;
 
     --radius: 0.5rem;
-  }
+
+    --cover-padding: clamp(16px, 3vw, 32px);
+    --cover-gap: clamp(8px, 1.5vw, 16px);
+    --cover-metric-gap: clamp(6px, 1vw, 12px);
+
+    --space-title-to-metrics: clamp(4px, 0.8vw, 12px);
+    --space-metrics-to-logo: clamp(2px, 1vw, 16px);
+    --space-section-padding: clamp(16px, 2vw, 100px);
+    }
 
   .dark {
     --background: 240 10% 3.9%;
@@ -429,42 +437,47 @@
   }
 
   .cover-hero {
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    gap: 10px;
-    padding-inline: 12px;
+    padding-inline: var(--space-section-padding);
+    padding-block: var(--space-section-padding);
   }
 
+  /* Título */
   .cover-title {
     color: #fff;
     font-weight: 900;
-    line-height: 1.02;
-    font-size: clamp(28px, 6vw, 44px);
+    line-height: 1.05;
+    font-size: clamp(30px, 6vw, 46px);
     text-shadow: 0 6px 28px rgba(0, 0, 0, .18);
     letter-spacing: .2px;
+    margin-bottom: var(--space-title-to-metrics); 
   }
 
+  /* Cuadros con totales */
+  .cover-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--cover-metric-gap);
+    margin-bottom: var(--space-metrics-to-logo);
+  }
+
+  /* Imagen (logo) */
   .cover-subtitle.with-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 12px;
+    margin-top: 0;
   }
 
   .cover-logo {
-    width: clamp(220px, 40vmin, 520px);
-    height: clamp(220px, 40vmin, 520px);
+    width: clamp(200px, 35vmin, 480px);
+    height: clamp(200px, 35vmin, 480px);
     object-fit: contain;
     display: block;
     filter: drop-shadow(0 12px 32px rgba(0, 0, 0, .28));
-  }
-
-  .cover-metrics {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 8px;
   }
 
   .metric {

@@ -58,6 +58,29 @@ function CoverPage({
       </header>
       <main className="cover-hero">
         <h1 className="cover-title">{title}</h1>
+
+        <div className="cover-metrics">
+          <div className="metric">
+            <span className="num">{totalProjects}</span>
+            <span className="lbl">proyectos</span>
+          </div>
+
+          <div className="metric">
+            <span className="num">{careersCount}</span>
+            <span className="lbl">carreras</span>
+          </div>
+
+          <div className="metric">
+            <span className="num">{onlineCount}</span>
+            <span className="lbl">en línea</span>
+          </div>
+
+          <div className="metric">
+            <span className="num">{presencialCount}</span>
+            <span className="lbl">presencial</span>
+          </div>
+        </div>
+
         <div
           className="cover-subtitle with-logo"
           aria-label={subtitle || "Revista de Servicio Social"}
@@ -71,24 +94,6 @@ function CoverPage({
             height={96}
             loading="lazy"
           />
-        </div>
-        <div className="cover-metrics">
-          <div className="metric">
-            <span className="num">{totalProjects}</span>
-            <span className="lbl">proyectos</span>
-          </div>
-          <div className="metric">
-            <span className="num">{careersCount}</span>
-            <span className="lbl">carreras</span>
-          </div>
-          <div className="metric">
-            <span className="num">{onlineCount}</span>
-            <span className="lbl">en línea</span>
-          </div>
-          <div className="metric">
-            <span className="num">{presencialCount}</span>
-            <span className="lbl">presencial</span>
-          </div>
         </div>
       </main>
       <footer className="cover-bottom">
@@ -436,13 +441,10 @@ export default function CatalogoMagazinePage() {
           maxShadowOpacity={0.5}
           drawShadow
           startPage={0}
-          /* 👇 Comportamiento condicional por dispositivo */
-          disableFlipByClick={false}        // en móvil NO click para pasar página
-          // disableFlipByClick={isMobile}        // en móvil NO click para pasar página
-          useMouseEvents={true}           // en desktop permitir drag/click
-          //useMouseEvents={!isMobile}           // en desktop permitir drag/click
-          swipeDistance={50}  // en móvil "anulamos" swipe
-          // swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
+          /* Comportamiento condicional por dispositivo */
+          disableFlipByClick={isMobile}        // en móvil NO click para pasar página
+          useMouseEvents={!isMobile}           // en desktop permitir drag/click
+          swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
           clickEventForward={false}
           mobileScrollSupport={true}
           showPageCorners
