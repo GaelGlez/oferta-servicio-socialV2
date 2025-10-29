@@ -532,4 +532,19 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
+
+  /* Desktop scroll */
+  .scroll-wrapper {
+    max-height: 100%; /* o un valor fijo como 1200px según height de flipbook */
+    overflow-y: auto;
+    padding-right: 10px; /* opcional, para scroll */
+    box-sizing: border-box;
+  }
+
+  /* Opcional: ocultar scroll solo para móvil (ya lo maneja la librería) */
+  @media (max-width: 767px) {
+    .scroll-wrapper {
+      overflow-y: visible;
+    }
+  }
 }

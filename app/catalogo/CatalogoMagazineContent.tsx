@@ -317,13 +317,20 @@ export default function CatalogoMagazinePage() {
     .filter((p) => (selectedPeriod ? selectedPeriod === p.period : true))
     .filter((p) => (selectedHours ? includesCsv(selectedHours, p.hours ?? "") : true));
 
-  const hoursOptions = useMemo(
-    () =>
-      Array.from(new Set(projects.map((p) => p.hours).filter(Boolean))).map(
-        (hours) => ({ label: `${hours} Horas`, value: hours })
-      ),
-    [projects]
-  );
+  const hoursOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return projects
+      .map((p) => String(p.hours || "").trim())
+      .filter(Boolean)
+      .filter((h) => {
+        const normalized = h.toLowerCase();
+        if (seen.has(normalized)) return false;
+        seen.add(normalized);
+        return true;
+      })
+      .map((hours) => ({ label: `${hours} Horas`, value: hours }));
+  }, [projects]);
+
 
   const tagOptions = useMemo(
     () =>
@@ -418,13 +425,12 @@ export default function CatalogoMagazinePage() {
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
           size="stretch"
           autoSize
-          width={1100}
-          height={1558}
-          minWidth={480}
-          maxWidth={1600}
-          minHeight={680}
-          maxHeight={2200}
-          showCover
+          width={isMobile ? 360 : 1000}       // Mobile: 360px, Desktop: 1000px
+          height={isMobile ? 700 : 1400}      // Mobile: 700px, Desktop: 1400px
+          minWidth={isMobile ? 320 : 800}     // Mobile: 320px, Desktop: 800px
+          minHeight={isMobile ? 600 : 1000}   // Mobile: 600px, Desktop: 1000px
+          maxWidth={isMobile ? 480 : 1600}    // Mobile: 480px, Desktop: 1600px
+          maxHeight={isMobile ? 1000 : 2000}  // Mobile: 1000px, Desktop: 2000px
           usePortrait
           maxShadowOpacity={0.5}
           drawShadow

@@ -4,55 +4,58 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle
-} from "@/components/ui/navigation-menu"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
-import Link from "next/link"
-import React from "react"
-import { Separator } from "./ui/separator"
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
+import { Separator } from "./ui/separator";
 
 export async function NavMenu() {
   return (
     <div className="flex w-full items-center justify-center lg:justify-between px-1 lg:px-40 space-x-8 pt-2">
-      <Link href="/" passHref>
-        <div className="flex flex-row items-center gap-2">
+      {/* Logo principal */}
+      <Link href="/">
+        <div className="flex flex-row items-center gap-2 cursor-pointer">
           <Image
             src="/tec-logo.webp"
-            alt="Logo"
+            alt="Logo Tec"
             width={200}
             height={50}
-            className="w-24 h-auto cursor-pointer"
+            className="w-24 h-auto"
           />
           <Separator orientation="vertical" className="h-6 bg-black" />
           <Image
             src="/servicio-logo.webp"
-            alt="Logo"
+            alt="Logo Servicio"
             width={200}
             height={50}
-            className="w-20 h-auto cursor-pointer"
+            className="w-20 h-auto"
           />
         </div>
       </Link>
+
+      {/* Menú de navegación */}
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/catalogo" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+            <NavigationMenuLink asChild>
+              <Link href="/catalogo" className={navigationMenuTriggerStyle()}>
                 Catalogo
-              </NavigationMenuLink>
-            </Link>
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/favoritos" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+            <NavigationMenuLink asChild>
+              <Link href="/favoritos" className={navigationMenuTriggerStyle()}>
                 Favoritos
-              </NavigationMenuLink>
-            </Link>
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-    </div >
-  )
+    </div>
+  );
 }
 
 const ListItem = React.forwardRef<
@@ -77,6 +80,6 @@ const ListItem = React.forwardRef<
         </a>
       </NavigationMenuLink>
     </li>
-  )
-})
-ListItem.displayName = "ListItem"
+  );
+});
+ListItem.displayName = "ListItem";
