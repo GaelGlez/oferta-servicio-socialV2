@@ -422,6 +422,7 @@ export default function CatalogoMagazinePage() {
       <div className="book-wrap relative overscroll-none touch-pan-y select-none">
         <HTMLFlipBook
           ref={bookRef}
+          className={`shadow-xl z-10 ${!isMobile ? 'desktop-scroll' : ''}`}
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
           size="stretch"
           autoSize
@@ -441,7 +442,6 @@ export default function CatalogoMagazinePage() {
           swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
           clickEventForward={false}
           mobileScrollSupport={true}
-          className="shadow-xl z-10"
           showPageCorners
           onInit={(inst: any) => {
             try {

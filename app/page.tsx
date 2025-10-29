@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@nextui-org/react";
-import { Leaf, Sun } from "lucide-react";
+import { Calendar, Leaf, Snowflake, Sun } from "lucide-react";
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 
@@ -12,37 +12,43 @@ Valores posibles de period:
 
 type PeriodKey = "invierno" | "feb-jun";
 
+// Nuevos periodos
 const periodOptions: Array<{
   label: string;
   label2?: string;
   value: PeriodKey;
   hours: number[];
-  variant: "green" | "orange";
-  icon: "sun" | "leaf";
+  variant: "blue" | "purple"; // ampliamos variantes
+  icon: "snowflake" | "calendar";
 }> = [
   {
-    label: "VERANO",
+    label: "Invierno",
     label2: undefined,
-    value: "invierno", // ajusta si tu query difiere
+    value: "invierno",
     hours: [60, 100, 200],
-    variant: "green",
-    icon: "sun",
+    variant: "blue",  // azul invernal
+    icon: "snowflake",
   },
   {
-    label: "AGOSTO",
-    label2: "DICIEMBRE",
-    value: "feb-jun", // ajusta si tu query difiere
+    label: "FEBRERO",
+    label2: "JUNIO",
+    value: "feb-jun",
     hours: [60, 120, 180],
-    variant: "orange",
-    icon: "leaf",
+    variant: "purple", // tonos morados
+    icon: "calendar",
   },
 ];
 
-// Gradientes fijos para Tailwind (evita clases dinámicas)
-const gradientByVariant: Record<"green" | "orange", string> = {
+
+
+// Gradientes extendidos para Tailwind
+const gradientByVariant: Record<"green" | "orange" | "blue" | "purple", string> = {
   green: "bg-gradient-to-br from-lime-200 via-lime-300 to-lime-500",
   orange: "bg-gradient-to-br from-orange-200 via-orange-300 to-orange-500",
+  blue: "bg-gradient-to-br from-blue-200 via-blue-400 to-blue-600",      // Invierno
+  purple: "bg-gradient-to-br from-purple-200 via-purple-300 to-purple-500", // Feb-Jun
 };
+
 
 function PeriodCard({
   titleTop,
@@ -56,8 +62,8 @@ function PeriodCard({
   titleBottom?: string;
   hrefHoursParam: PeriodKey;
   hours: number[];
-  variant: "green" | "orange";
-  icon: "sun" | "leaf";
+  variant: "blue" | "purple";
+  icon: "snowflake" | "calendar";
 }) {
   const router = useRouter();
 
@@ -88,10 +94,10 @@ function PeriodCard({
 
         {/* Ícono */}
         <div className="flex items-center justify-center">
-          {icon === "sun" ? (
-            <Sun className="h-28 w-28 opacity-80" />
+          {icon === "snowflake" ? (
+            <Snowflake className="h-28 w-28 opacity-80" />
           ) : (
-            <Leaf className="h-28 w-28 opacity-80" />
+            <Calendar className="h-28 w-28 opacity-80" />
           )}
         </div>
 

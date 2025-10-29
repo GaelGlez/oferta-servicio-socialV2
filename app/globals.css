@@ -533,18 +533,26 @@
     }
   }
 
-  /* Desktop scroll */
-  .scroll-wrapper {
-    max-height: 100%; /* o un valor fijo como 1200px según height de flipbook */
+  .desktop-scroll .page {
     overflow-y: auto;
-    padding-right: 10px; /* opcional, para scroll */
-    box-sizing: border-box;
   }
 
-  /* Opcional: ocultar scroll solo para móvil (ya lo maneja la librería) */
-  @media (max-width: 767px) {
-    .scroll-wrapper {
-      overflow-y: visible;
+  /* Para desktop, permitir scroll dentro de la página */
+  @media (min-width: 768px) {
+    .page {
+      overflow-y: auto;      /* Scroll vertical si el contenido es más alto */
+      max-height: 100%;      /* Limita la altura al contenedor */
+      padding-right: 1rem;   /* Evita que el scroll tape contenido */
+    }
+
+    .sheet {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content {
+      flex: 1;
+      overflow: visible; /* Permite que aside y cards se ajusten */
     }
   }
 }
