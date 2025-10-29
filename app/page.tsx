@@ -18,7 +18,7 @@ const periodOptions: Array<{
   label2?: string;
   value: PeriodKey;
   hours: number[];
-  variant: "blue" | "purple"; // ampliamos variantes
+  variant: "green" | "orange"; // ampliamos variantes
   icon: "snowflake" | "calendar";
 }> = [
   {
@@ -26,7 +26,7 @@ const periodOptions: Array<{
     label2: undefined,
     value: "invierno",
     hours: [60, 100, 200],
-    variant: "blue",  // azul invernal
+    variant: "green",  // azul invernal
     icon: "snowflake",
   },
   {
@@ -34,7 +34,7 @@ const periodOptions: Array<{
     label2: "JUNIO",
     value: "feb-jun",
     hours: [60, 120, 180],
-    variant: "purple", // tonos morados
+    variant: "orange", // tonos morados
     icon: "calendar",
   },
 ];
