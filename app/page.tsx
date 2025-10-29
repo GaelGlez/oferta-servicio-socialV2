@@ -127,7 +127,7 @@ function PageContent() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="mb-10 text-center text-4xl md:text-6xl font-extrabold">
-        Ofertas Servicio Social
+        Ofertas Servicio Social 2026
       </h1>
 
       <div className="grid grid-cols-1 place-items-center gap-6 md:grid-cols-2">
