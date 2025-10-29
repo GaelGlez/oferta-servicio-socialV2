@@ -588,7 +588,7 @@
   .masthead .chips.top .tag:first-child,
   .masthead .chips.top .chip:first-child {
     background: #fffaf2;       /* fondo morado sólido */
-    color: #fff;               /* texto blanco */
+    color: black;               /* texto blanco */
     border-color: gray;     /* mismo color del borde */
     font-weight: 700;
     font-size: 1.25rem;        /* un poco más grande */
