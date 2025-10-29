@@ -276,7 +276,7 @@ export default function CatalogoMagazinePage() {
           minWidth={isMobile ? 320 : 520}
           maxWidth={isMobile ? 1600 : 720}
           minHeight={isMobile ? 520 : 720}
-          maxHeight={isMobile ? 1600 : 1400}
+          maxHeight={isMobile ? 1600 : 1800}
           showCover
           usePortrait
           maxShadowOpacity={0.5}
