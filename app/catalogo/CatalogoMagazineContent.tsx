@@ -408,11 +408,11 @@ export default function CatalogoMagazinePage() {
           size={isMobile ? "stretch" : "fixed"}
           autoSize={!isMobile ? false : true}
           width={isMobile ? 1100 : 1200}
-          height={isMobile ? 1558 : 1700}
+          height={isMobile ? 1558 : 1250}
           minWidth={isMobile ? 320 : 960}
           maxWidth={isMobile ? 1600 : 1400}
           minHeight={isMobile ? 520 : 800}
-          maxHeight={isMobile ? 2200 : 2000}
+          maxHeight={isMobile ? 2200 : 1600}
 
           showCover
           usePortrait
