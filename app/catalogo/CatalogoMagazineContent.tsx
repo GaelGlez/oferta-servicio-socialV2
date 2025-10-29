@@ -695,7 +695,6 @@ export default function CatalogoMagazinePage() {
                           </div>
                         </div>
                       </div>
-
                       {project?.period && (
                         <div className="card">
                           <div className="meta">
@@ -709,7 +708,7 @@ export default function CatalogoMagazinePage() {
                             <div>
                               <h3>Periodo</h3>
                               <p className="lead clamp-2" style={{ margin: 0 }}>
-                                {project?.period}
+                                {selectedPeriod}
                               </p>
                             </div>
                           </div>
