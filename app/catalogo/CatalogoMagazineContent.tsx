@@ -708,7 +708,7 @@ export default function CatalogoMagazinePage() {
                             <div>
                               <h3>Periodo</h3>
                               <p className="lead clamp-2" style={{ margin: 0 }}>
-                                {selectedPeriod}
+                                {getPeriodLabel(project?.period)}
                               </p>
                             </div>
                           </div>
