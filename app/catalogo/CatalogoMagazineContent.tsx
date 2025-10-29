@@ -1,5 +1,3 @@
-"use client";
-
 import React, {
   useEffect,
   useState,
@@ -168,18 +166,21 @@ export default function CatalogoMagazinePage() {
     }
   }, []);
 
-  const syncFromApi = useCallback((api?: any) => {
-    const _api = api ?? getApi();
-    if (!_api) return;
-    const idx = _api.getCurrentPageIndex?.() ?? 0;
-    const total = _api.getPageCount?.() ?? 1;
-    setPage(idx + 1);
-    setPagesTotal(total);
-    setIsFirst(idx <= 0);
-    setIsLast(idx >= total - 1);
-  }, [getApi]);
+  const syncFromApi = useCallback(
+    (api?: any) => {
+      const _api = api ?? getApi();
+      if (!_api) return;
+      const idx = _api.getCurrentPageIndex?.() ?? 0;
+      const total = _api.getPageCount?.() ?? 1;
+      setPage(idx + 1);
+      setPagesTotal(total);
+      setIsFirst(idx <= 0);
+      setIsLast(idx >= total - 1);
+    },
+    [getApi]
+  );
 
-  // FIX: función robusta para cambiar página (usa turnToPrev/Next si existe)
+  // === FLIP EXACTO POR ÍNDICE (evita saltos dobles) ===
   const safeFlip = useCallback(
     (dir: "prev" | "next") => {
       const api = getApi();
@@ -187,13 +188,17 @@ export default function CatalogoMagazinePage() {
       const idx = api.getCurrentPageIndex?.() ?? 0;
       const total = api.getPageCount?.() ?? 1;
 
-      if (dir === "prev" && idx > 0) {
-        (api.turnToPrevPage?.() ?? api.flipPrev?.())?.call?.(api);
+      const target =
+        dir === "prev" ? Math.max(0, idx - 1) : Math.min(total - 1, idx + 1);
+
+      if (typeof api.turnToPage === "function") {
+        api.turnToPage(target);
+      } else {
+        // fallback por si la API cambia
+        if (dir === "prev" && idx > 0) api.flipPrev?.();
+        if (dir === "next" && idx < total - 1) api.flipNext?.();
       }
-      if (dir === "next" && idx < total - 1) {
-        (api.turnToNextPage?.() ?? api.flipNext?.())?.call?.(api);
-      }
-      // pequeño microtick para que el estado no se quede desincronizado
+
       setTimeout(() => syncFromApi(api), 0);
     },
     [getApi, syncFromApi]
@@ -201,6 +206,7 @@ export default function CatalogoMagazinePage() {
 
   const goPrev = useCallback(
     (e?: React.MouseEvent) => {
+      e?.preventDefault?.();
       e?.stopPropagation?.();
       safeFlip("prev");
     },
@@ -209,6 +215,7 @@ export default function CatalogoMagazinePage() {
 
   const goNext = useCallback(
     (e?: React.MouseEvent) => {
+      e?.preventDefault?.();
       e?.stopPropagation?.();
       safeFlip("next");
     },
@@ -350,7 +357,7 @@ export default function CatalogoMagazinePage() {
     return m ? m[0] : String(h);
   };
 
-  const year = new Date().getFullYear() + 1; // tu valor actual
+  const year = new Date().getFullYear() + 1;
   const periodLabelTop = getPeriodLabel(selectedPeriod);
 
   return (
@@ -711,27 +718,27 @@ export default function CatalogoMagazinePage() {
 
         {/* === ZONAS TÁCTILES (solo móvil) === */}
         <div className="md:hidden pointer-events-none">
-          {/* Izquierda (z-30 para no tapar el botón) */}
+          {/* Izquierda */}
           <div
-            onClick={goPrev}
+            onClick={(e) => goPrev(e)}
             className="pointer-events-auto absolute left-0 top-1/2 -translate-y-1/2 h-[60%] w-[22%] z-30"
             aria-hidden
             title="Página anterior"
           />
           {/* Derecha */}
           <div
-            onClick={goNext}
+            onClick={(e) => goNext(e)}
             className="pointer-events-auto absolute right-0 top-1/2 -translate-y-1/2 h-[60%] w-[22%] z-30"
             aria-hidden
             title="Página siguiente"
           />
         </div>
 
-        {/* === BOTONES VISIBLES (solo móvil, centrados verticalmente) === */}
+        {/* === BOTONES VISIBLES (solo móvil) === */}
         <button
           type="button"
           aria-label="Página anterior"
-          onClick={goPrev}
+          onClick={(e) => goPrev(e)}
           disabled={isFirst}
           className={`md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
             isFirst ? "opacity-40 pointer-events-none" : ""
@@ -742,7 +749,7 @@ export default function CatalogoMagazinePage() {
         <button
           type="button"
           aria-label="Página siguiente"
-          onClick={goNext}
+          onClick={(e) => goNext(e)}
           disabled={isLast}
           className={`md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-50 rounded-full border px-3 py-2 text-sm shadow-md bg-white/95 hover:bg-white active:scale-95 ${
             isLast ? "opacity-40 pointer-events-none" : ""
