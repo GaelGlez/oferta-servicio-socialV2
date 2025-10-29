@@ -437,9 +437,12 @@ export default function CatalogoMagazinePage() {
           drawShadow
           startPage={0}
           /* 👇 Comportamiento condicional por dispositivo */
-          disableFlipByClick={isMobile}        // en móvil NO click para pasar página
-          useMouseEvents={!isMobile}           // en desktop permitir drag/click
-          swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
+          disableFlipByClick={false}        // en móvil NO click para pasar página
+          // disableFlipByClick={isMobile}        // en móvil NO click para pasar página
+          useMouseEvents={true}           // en desktop permitir drag/click
+          //useMouseEvents={!isMobile}           // en desktop permitir drag/click
+          swipeDistance={50}  // en móvil "anulamos" swipe
+          // swipeDistance={isMobile ? 999 : 50}  // en móvil "anulamos" swipe
           clickEventForward={false}
           mobileScrollSupport={true}
           showPageCorners
@@ -617,26 +620,34 @@ export default function CatalogoMagazinePage() {
                           </div>
                         )}
                     </div>
+                  
 
                     <aside className="aside-col">
-                      {project?.image && (
-                        <figure className="org-media org-media--aside">
-                          <Image
-                            as={NextImage}
-                            isBlurred
-                            removeWrapper
-                            alt={project?.title || "Imagen del proyecto"}
-                            className="z-0 object-contain org-img"
-                            src={
-                              supabase.storage
-                                .from("ServicioSocialProjectImages")
-                                .getPublicUrl(project?.image).data.publicUrl
-                            }
-                            width={800}
-                            height={480}
-                          />
-                        </figure>
-                      )}
+                      <div>
+                        {project?.image ? (
+                          <figure className="org-media org-media--aside mt-4">
+                            <Image
+                              as={NextImage}
+                              isBlurred
+                              removeWrapper
+                              alt={project?.title || "Imagen del proyecto"}
+                              className="z-0 object-contain org-img"
+                              src={
+                                supabase.storage
+                                  .from("ServicioSocialProjectImages")
+                                  .getPublicUrl(project?.image).data.publicUrl
+                              }
+                              width={800}
+                              height={480}
+                            />
+                          </figure>
+                        ) : (
+                          <div className="org-placeholder mt-4 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 text-gray-500">
+                            <p className="text-center font-semibold">Imagen no disponible</p>
+                            <p className="text-sm">Este proyecto no cuenta con imagen</p>
+                          </div>
+                        )}
+                      </div>
 
                       {project?.location && (
                         <div className="card">
