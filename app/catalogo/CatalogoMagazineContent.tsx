@@ -179,7 +179,7 @@ export default function CatalogoMagazinePage() {
     [getApi]
   );
 
-  // Flips robustos
+  // ---- FIX: flips robustos (turnToPrev/Next o flipPrev/Next) ----
   const safeFlip = useCallback(
     (dir: "prev" | "next") => {
       const api = getApi();
@@ -212,11 +212,6 @@ export default function CatalogoMagazinePage() {
     },
     [safeFlip]
   );
-
-  // Helpers para detener gestos del flipbook al hacer scroll
-  const stopFlipGesture = useCallback((e: any) => {
-    e.stopPropagation();
-  }, []);
 
   // detectar móvil
   useEffect(() => {
@@ -404,33 +399,29 @@ export default function CatalogoMagazinePage() {
       </div>
 
       {/* Flipbook */}
-      <div className="relative w-full select-none overflow-hidden mx-auto md:max-w-none">
+      <div className="relative w-full max-w-[1100px] select-none">
         <HTMLFlipBook
           ref={bookRef}
           key={`${searchTerm}-${selectedHours}-${selectedTags}-${selectedModel}-${selectedPeriod}`}
-          /* Tamaño/control por dispositivo */
-          size={isMobile ? "stretch" : "fixed"}
-          autoSize={isMobile}
-          width={isMobile ? 800 : 600}
-          height={isMobile ? 1250 : 1000}
-          minWidth={isMobile ? 320 : 960}
-          maxWidth={isMobile ? 1600 : 1400}
-          minHeight={isMobile ? 520 : 800}
-          maxHeight={isMobile ? 1600 : 1800}
-
+          size="stretch"
+          autoSize
+          width={1100}
+          height={1558}
+          minWidth={480}
+          maxWidth={1600}
+          minHeight={680}
+          maxHeight={2200}
           showCover
           usePortrait
           maxShadowOpacity={0.5}
           drawShadow
           startPage={0}
-
-          // Interacción
+          // móvil: sin flip por tap/drag; desktop: gestos OK
           disableFlipByClick={isMobile}
           useMouseEvents={!isMobile}
           swipeDistance={isMobile ? 999 : 50}
           clickEventForward={false}
           mobileScrollSupport={true}
-
           className="shadow-xl z-10"
           showPageCorners
           onInit={(inst: any) => {
@@ -483,8 +474,7 @@ export default function CatalogoMagazinePage() {
 
             return (
               <div key={project.id} className="page">
-                {/* sheet AHORA ES FLEX-COL para que la zona de contenido pueda scrollear */}
-                <article className="sheet flex flex-col">
+                <article className="sheet">
                   <header className="masthead">
                     <div className="fav" onClick={(e) => e.stopPropagation()}>
                       <FavoriteButton id={project.id.toString()} />
@@ -520,17 +510,8 @@ export default function CatalogoMagazinePage() {
                     </div>
                   </header>
 
-                  {/* ZONA SCROLLABLE: ocupa el resto de la página */}
-                  <section
-                    className="content flex-1 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 overflow-hidden"
-                  >
-                    {/* Columna izquierda con scroll */}
-                    <div
-                      className="col-span-1 overflow-auto pr-2 [-webkit-overflow-scrolling:touch]"
-                      onWheel={stopFlipGesture}
-                      onTouchStart={stopFlipGesture}
-                      onPointerDown={stopFlipGesture}
-                    >
+                  <section className="content no-scroll">
+                    <div>
                       <p className="kicker">Objetivo del proyecto</p>
                       <p className="lead clamp-4">{project?.objective || "—"}</p>
 
@@ -613,13 +594,7 @@ export default function CatalogoMagazinePage() {
                         )}
                     </div>
 
-                    {/* Columna derecha con scroll */}
-                    <aside
-                      className="aside-col overflow-auto pl-2 [-webkit-overflow-scrolling:touch]"
-                      onWheel={stopFlipGesture}
-                      onTouchStart={stopFlipGesture}
-                      onPointerDown={stopFlipGesture}
-                    >
+                    <aside className="aside-col">
                       {project?.image && (
                         <figure className="org-media org-media--aside">
                           <Image
